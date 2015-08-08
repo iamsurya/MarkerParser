@@ -39,6 +39,7 @@
             this.label4 = new System.Windows.Forms.Label();
             this.TBMarkerFile = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
+            this.ProgressBar = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
             // 
             // button1
@@ -53,7 +54,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(376, 299);
+            this.button2.Location = new System.Drawing.Point(376, 268);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(110, 23);
             this.button2.TabIndex = 1;
@@ -74,7 +75,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(43, 304);
+            this.label1.Location = new System.Drawing.Point(43, 273);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(46, 13);
             this.label1.TabIndex = 3;
@@ -83,7 +84,8 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(125, 304);
+            this.label2.Location = new System.Drawing.Point(125, 273);
+            this.label2.MaximumSize = new System.Drawing.Size(230, 0);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(22, 13);
             this.label2.TabIndex = 4;
@@ -138,11 +140,19 @@
             this.label5.TabIndex = 9;
             this.label5.Text = "Marker File : ";
             // 
+            // ProgressBar
+            // 
+            this.ProgressBar.Location = new System.Drawing.Point(110, 336);
+            this.ProgressBar.Name = "ProgressBar";
+            this.ProgressBar.Size = new System.Drawing.Size(271, 23);
+            this.ProgressBar.TabIndex = 11;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(507, 401);
+            this.Controls.Add(this.ProgressBar);
             this.Controls.Add(this.TBMarkerFile);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.TBOutputFile);
@@ -174,6 +184,7 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox TBMarkerFile;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.ProgressBar ProgressBar;
     }
 }
 
