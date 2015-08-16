@@ -79,7 +79,7 @@ namespace MarkerParser
                         /* Read first line with column units */
                         line = reader.ReadLine();
                         values = line.Split('\t');
-                        var time = values[16].Split('_');
+                        var time = values[0].Split('_');
                         CurrentLine = 3;
 
                         /* Read actual lines */
@@ -94,7 +94,7 @@ namespace MarkerParser
                                 ProgressBar.Parent.Invoke((MethodInvoker)delegate
                                 {
                                     ProgressBar.ForeColor = Color.YellowGreen;
-                                    ProgressBar.Value = (UInt16)Percentage;
+                                    ProgressBar.Value = ((UInt16)Percentage <= 100) ? (UInt16)Percentage : 100;
                                 });
 
                                 label2.Parent.Invoke((MethodInvoker)delegate {
