@@ -79,7 +79,7 @@ namespace MarkerParser
                         /* Read first line with column units */
                         line = reader.ReadLine();
                         values = line.Split('\t');
-                        var time = values[0].Split('_');
+                        var time = values[16].Split('_');
                         CurrentLine = 3;
 
                         /* Read actual lines */
@@ -116,9 +116,9 @@ namespace MarkerParser
                             {
                                 time = values[16].Split('_');
                                 if (time[0].Length < 4)
-                                    SomeDate = time[0].Substring(0, 1) + " " + time[1].ToString() + " " + time[2].ToString();
+                                    SomeDate = time[0].Substring(0, 1) + " " + time[1].ToString().Substring(0,3) + " " + time[2].ToString();
                                 else
-                                    SomeDate = time[0].Substring(0, 2) + " " + time[1].ToString() + " " + time[2].ToString();
+                                    SomeDate = time[0].Substring(0, 2) + " " + time[1].ToString().Substring(0,3) + " " + time[2].ToString();
                                 SomeDateTime = Convert.ToDateTime(SomeDate);
                                 MarkerWriter.WriteLine("START\t" + SomeDateTime.Date.ToString("u").Substring(0, 10) + "\t" + time[3].ToString().Substring(0, 8));
 
@@ -142,9 +142,9 @@ namespace MarkerParser
                         /* Write the END Marker details */
                         time = values[16].Split('_');
                         if (time[0].Length < 4)
-                            SomeDate = time[0].Substring(0, 1) + " " + time[1].ToString() + " " + time[2].ToString();
+                            SomeDate = time[0].Substring(0, 1) + " " + time[1].ToString().Substring(0,3) + " " + time[2].ToString();
                         else
-                            SomeDate = time[0].Substring(0, 2) + " " + time[1].ToString() + " " + time[2].ToString();
+                            SomeDate = time[0].Substring(0, 2) + " " + time[1].ToString().Substring(0,3) + " " + time[2].ToString();
                         SomeDateTime = Convert.ToDateTime(SomeDate);
                         MarkerWriter.WriteLine("END\t" + SomeDateTime.Date.ToString("u").Substring(0, 10) + "\t" + time[3].ToString().Substring(0, 8));
 
