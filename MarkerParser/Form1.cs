@@ -34,7 +34,7 @@ namespace MarkerParser
         bool EndThread = true;
 
         StreamWriter MarkerWriter;
-        StreamWriter DataWriter;
+        BinaryWriter DataWriter;
         StreamReader reader;
 
         private void WorkerThread()
@@ -64,7 +64,7 @@ namespace MarkerParser
                         //Application.DoEvents();
 
                         MarkerWriter = new StreamWriter(File.OpenWrite(MarkerFileName));
-                        DataWriter = new StreamWriter(File.OpenWrite(OutputFileName));
+                        DataWriter = new BinaryWriter(File.OpenWrite(OutputFileName));
 
                         reader = new StreamReader(File.OpenRead(InputFileName));
 
@@ -176,8 +176,13 @@ namespace MarkerParser
 
 
 
-                            DataWriter.WriteLine(ax + "\t" + ay + "\t" + az + "\t" + Gx + "\t" + Gy + "\t" + Gz);
-
+                            //DataWriter.WriteLine(ax + "\t" + ay + "\t" + az + "\t" + Gx + "\t" + Gy + "\t" + Gz);
+                            DataWriter.Write(ax);
+                            DataWriter.Write(ay);
+                            DataWriter.Write(az);
+                            DataWriter.Write(Gx);
+                            DataWriter.Write(Gy);
+                            DataWriter.Write(Gz);
 
                             //ay = ay;
 
