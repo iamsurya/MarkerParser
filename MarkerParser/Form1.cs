@@ -15,7 +15,7 @@ namespace MarkerParser
 {
     public partial class Form1 : Form
     {
-        String InputFileName, OutputFileName, MarkerFileName;
+        String InputFileName, OutputFileName, MarkerFileName, InterviewFileName;
 
         ManualResetEvent runThread = new ManualResetEvent(false);
         Thread t;
@@ -24,6 +24,12 @@ namespace MarkerParser
         UInt64 CurrentLine = 0;
         double Percentage = 0;
         UInt16 UPercentage = 0;
+
+        float ax = 0, ay = 0, az = 0, lx = 0, ly = 0, lz = 0, Gx = 0, Gy = 0, Gz = 0, gx = 0, gy = 0, gz = 0;
+
+        float[,] R = new float[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0} };
+
+        
 
         bool EndThread = true;
 
@@ -108,7 +114,72 @@ namespace MarkerParser
 
                             values = line.Split('\t');
 
-                            DataWriter.WriteLine(values[0] + "\t" + values[3] + "\t" + values[4] + "\t" + values[5] + "\t" + values[6] + "\t" + values[7] + "\t" + values[8] + "\t" + values[9] + "\t" + values[10] + "\t" + values[11] + "\t" + values[12] + "\t" + values[13] + "\t" + values[14] + "\t" + values[15]);
+                            float q0 = float.Parse(values[3]);
+                            float q1 = float.Parse(values[4]);
+                            float q2 = float.Parse(values[5]);
+                            float q3 = float.Parse(values[6]);
+
+                            Gx = float.Parse(values[7]);
+                            Gy = float.Parse(values[8]);
+                            Gz = float.Parse(values[9]);
+
+                            ax = float.Parse(values[10]);
+                            ay = float.Parse(values[11]);
+                            az = float.Parse(values[12]);
+
+
+
+                            float sq_q1 = 2 * q1 * q1;
+                            float sq_q2 = 2 * q2 * q2;
+                            float sq_q3 = 2 * q3 * q3;
+                            float q1_q2 = 2 * q1 * q2;
+                            float q3_q0 = 2 * q3 * q0;
+                            float q1_q3 = 2 * q1 * q3;
+                            float q2_q0 = 2 * q2 * q0;
+                            float q2_q3 = 2 * q2 * q3;
+                            float q1_q0 = 2 * q1 * q0;
+
+                            R[0,0] = 1 - sq_q2 - sq_q3;
+                            R[0,1] = q1_q2 - q3_q0;
+                            R[0,2] = q1_q3 + q2_q0;
+                            R[1,0] = q1_q2 + q3_q0;
+                            R[1,1] = 1 - sq_q1 - sq_q3;
+                            R[1,2] = q2_q3 - q1_q0;
+                            R[2,0] = q1_q3 - q2_q0;
+                            R[2,1] = q2_q3 + q1_q0;
+                            R[2,2] = 1 - sq_q1 - sq_q2;
+
+                            /* Seperating gravity */
+                            gx =  R[2,0];
+                            gy =  R[2,1];
+                            gz =  R[2,2];
+                            //gz = (q0*q0) - (q1*q1) - (q2*q2) + (q3*q3);
+
+                            /* Removing gravity from Smoothed Signal */
+                            /* Data Port facing inside */
+                            /* RawData[0][Total_Data] = -(RawData[0][Total_Data] - gx);
+                            RawData[1][Total_Data] = -(RawData[1][Total_Data] - gy);
+                            RawData[2][Total_Data] = -(RawData[2][Total_Data] - gz); */
+
+                            /* Data Port Facing Outside */
+                            ax = -(ax -  gx);
+                            ay = -(ay -  gy);
+                            az = -(az -  gz);
+
+
+
+                            /* Move data around for correct axes orientation in Shimmer Vs the iPhone*/
+                            // If data port pointing away from hand. Swap X and Y
+                            gx = ax;
+                            ax = ay;
+                            ay = gx;
+
+
+
+                            DataWriter.WriteLine(ax + "\t" + ay + "\t" + az + "\t" + Gx + "\t" + Gy + "\t" + Gz);
+
+
+                            //ay = ay;
 
                             /* Is this the start of the data ? */
                             /* Write the START Marker Details */
@@ -167,6 +238,8 @@ namespace MarkerParser
                         MarkerWriter.Close();
                         DataWriter.Close();
                         reader.Close();
+
+                        System.IO.File.Copy(MarkerFileName, InterviewFileName, true);
 
                         EndThread = true;
                     }
@@ -244,6 +317,7 @@ namespace MarkerParser
                 OutputFileName = SaveFileDialog1.FileName;
                 TBOutputFile.Text = OutputFileName;
                 MarkerFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-markers.txt";
+                InterviewFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-interview.txt";
                 TBMarkerFile.Text = MarkerFileName;
 
             }
