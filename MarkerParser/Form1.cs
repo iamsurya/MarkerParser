@@ -25,7 +25,7 @@ namespace MarkerParser
         double Percentage = 0;
         UInt16 UPercentage = 0;
 
-        float ax = 0, ay = 0, az = 0, lx = 0, ly = 0, lz = 0, Gx = 0, Gy = 0, Gz = 0, gx = 0, gy = 0, gz = 0;
+        float ax = 0, ay = 0, az = 0, Gx = 0, Gy = 0, Gz = 0, gx = 0, gy = 0, gz = 0;
 
         float[,] R = new float[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0} };
 
@@ -78,6 +78,7 @@ namespace MarkerParser
                         var line = reader.ReadLine();
                         var values = line.Split('\t');
 
+                       
 
                         /* Read first line with column titles */
                         line = reader.ReadLine();
@@ -85,8 +86,26 @@ namespace MarkerParser
                         /* Read first line with column units */
                         line = reader.ReadLine();
                         values = line.Split('\t');
+
+                        if (values.Length < 18)
+                        {
+                            label2.Parent.Invoke((MethodInvoker)delegate
+                            {
+                                button2.Enabled = true;
+                                label2.Text = "Data is corrupted. Open CSV file in Matlab. Column Q should have date.";
+                                label2.ForeColor = Color.Red;
+                            });
+                            MarkerWriter.Close();
+                            DataWriter.Close();
+                            EndThread = true;
+                            return;
+
+                        }
+
                         var time = values[16].Split('_');
                         CurrentLine = 3;
+
+
 
                         /* Read actual lines */
                         while (!reader.EndOfStream)
@@ -270,16 +289,30 @@ namespace MarkerParser
         public Form1()
         {
             InitializeComponent();
+            Int32 unixTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            TBTime.Text = unixTimestamp.ToString();
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
             InputFileName = TBInputFile.Text;
 
-            EndThread = false;
-            t = new Thread(WorkerThread);
-            t.Start();
-            runThread.Set();    
+            if (TBOutputFile.Text.Equals("", StringComparison.Ordinal))
+            {
+                label2.Parent.Invoke((MethodInvoker)delegate
+                {
+                    button2.Enabled = true;
+                    label2.Text = "Please pick an output File";
+                    label2.ForeColor = Color.Red;
+                });
+            }
+            else
+            {
+                EndThread = false;
+                t = new Thread(WorkerThread);
+                t.Start();
+                runThread.Set();
+            }
         }
         
         private void button1_Click(object sender, EventArgs e)
@@ -300,7 +333,13 @@ namespace MarkerParser
                 InputFileName = openFileDialog1.FileName;
                 TBInputFile.Text = InputFileName;
                 OutputFileName = new DirectoryInfo(InputFileName).Parent.Name;
+                TBOutputFile.Text = "";
+                TBMarkerFile.Text = "";
+                InterviewFileName = "";
+                MarkerFileName = "";
+
             }
+
 
 
         }
@@ -327,5 +366,13 @@ namespace MarkerParser
 
             }
         }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            Int32 unixTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            TBTime.Text = unixTimestamp.ToString();
+        }
+
+
     }
 }

@@ -40,6 +40,9 @@
             this.TBMarkerFile = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.ProgressBar = new System.Windows.Forms.ProgressBar();
+            this.label6 = new System.Windows.Forms.Label();
+            this.TBTime = new System.Windows.Forms.TextBox();
+            this.btnGenTime = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
@@ -147,11 +150,40 @@
             this.ProgressBar.Size = new System.Drawing.Size(271, 23);
             this.ProgressBar.TabIndex = 11;
             // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(55, 25);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(66, 13);
+            this.label6.TabIndex = 12;
+            this.label6.Text = "Config Time:";
+            // 
+            // TBTime
+            // 
+            this.TBTime.Location = new System.Drawing.Point(127, 22);
+            this.TBTime.Name = "TBTime";
+            this.TBTime.Size = new System.Drawing.Size(228, 20);
+            this.TBTime.TabIndex = 13;
+            // 
+            // btnGenTime
+            // 
+            this.btnGenTime.Location = new System.Drawing.Point(376, 25);
+            this.btnGenTime.Name = "btnGenTime";
+            this.btnGenTime.Size = new System.Drawing.Size(108, 23);
+            this.btnGenTime.TabIndex = 14;
+            this.btnGenTime.Text = "Generate";
+            this.btnGenTime.UseVisualStyleBackColor = true;
+            this.btnGenTime.Click += new System.EventHandler(this.button4_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(507, 401);
+            this.Controls.Add(this.btnGenTime);
+            this.Controls.Add(this.TBTime);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.ProgressBar);
             this.Controls.Add(this.TBMarkerFile);
             this.Controls.Add(this.label5);
@@ -185,6 +217,9 @@
         private System.Windows.Forms.TextBox TBMarkerFile;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.ProgressBar ProgressBar;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.TextBox TBTime;
+        private System.Windows.Forms.Button btnGenTime;
     }
 }
 
