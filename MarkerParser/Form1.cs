@@ -19,23 +19,27 @@ namespace MarkerParser
 
         ManualResetEvent runThread = new ManualResetEvent(false);
         Thread t;
-        UInt64 BytesPerLine = 306;
+        UInt64 BytesPerLine = 306;  // Average number of bytes each line in the original file has
         UInt64 TotalLines = 0;
         UInt64 CurrentLine = 0;
         double Percentage = 0;
         UInt16 UPercentage = 0;
-
-        float ax = 0, ay = 0, az = 0, Gx = 0, Gy = 0, Gz = 0, gx = 0, gy = 0, gz = 0;
-
-        float[,] R = new float[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0} };
-
+        UInt64 ExpSamples = 0;
+        UInt64 LinesWritten = 0;
         
+
+        double ax = 0, ay = 0, az = 0, Gx = 0, Gy = 0, Gz = 0, gx = 0, gy = 0, gz = 0, lx = 0, ly = 0, lz = 0;
+
+        double[,] R = new double[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0} };
+
+        double quatmag = 0, gravmag = 0, accmag = 0;
 
         bool EndThread = true;
 
         StreamWriter MarkerWriter;
         BinaryWriter DataWriter;
         StreamReader reader;
+        double NumSamples;
 
         private void WorkerThread()
         {
@@ -50,10 +54,15 @@ namespace MarkerParser
                     {
 
                         bool First = true; // Bool To get the starting time
-                        String SomeDate;
-                        DateTime SomeDateTime;
+                        String FileDateTimeString; // String from the file which contains time and date
+                        DateTime FileDateTime; // DateTime generated from the File data
+                        DateTime StartTime = new DateTime(0), EndTime, CurrentEstimate = new DateTime(0);
+                        LinesWritten = 0;
+                        Percentage = 0;
+                        UPercentage = 0;
 
-                        // Console.WriteLine("Hello!");
+
+                        /* Modify the button so it can't be pressed again */
                         label2.Parent.Invoke((MethodInvoker)delegate {
                             label2.Text = @"Working";
                             label2.ForeColor = Color.YellowGreen;
@@ -61,7 +70,7 @@ namespace MarkerParser
                             button2.Enabled = false;
                         });
                         
-                        //Application.DoEvents();
+
 
                         MarkerWriter = new StreamWriter(File.OpenWrite(MarkerFileName));
                         DataWriter = new BinaryWriter(File.OpenWrite(OutputFileName));
@@ -92,7 +101,7 @@ namespace MarkerParser
                             label2.Parent.Invoke((MethodInvoker)delegate
                             {
                                 button2.Enabled = true;
-                                label2.Text = "Data is corrupted. Open CSV file in Matlab. Column Q should have date.";
+                                label2.Text = "Data is corrupted. Open CSV file in Excel. Column Q should have date.";
                                 label2.ForeColor = Color.Red;
                             });
                             MarkerWriter.Close();
@@ -103,18 +112,25 @@ namespace MarkerParser
                         }
 
                         var time = values[16].Split('_');
-                        CurrentLine = 3;
+                        
 
+                        /* Force reading of 3 lines */
+                        /* The Quaternion data for the first few lines is bad, so we ignore it */
 
+                        line = reader.ReadLine();
+                        line = reader.ReadLine();
+                        line = reader.ReadLine();
+                        CurrentLine = 6;
 
                         /* Read actual lines */
                         while (!reader.EndOfStream)
                         {
+                            /* Read the line from the file */
                             line = reader.ReadLine();
-                            CurrentLine++;
-                            Percentage = (CurrentLine * 100 / TotalLines);
-
-                            if ((UInt16)Percentage > UPercentage)
+                            CurrentLine++;                                  /* Increment the counter tracking progress */
+                            /* Calculate and display progress */
+                            Percentage = (CurrentLine * 100 / TotalLines); 
+                            if ((UInt16)Percentage > UPercentage)       /* Failsafe to check that percentage isn't greater than 100 - this happens if we miscalculate file size */
                             {
                                 ProgressBar.Parent.Invoke((MethodInvoker)delegate
                                 {
@@ -129,34 +145,66 @@ namespace MarkerParser
                                 });
 
                             }
+
                             UPercentage = (UInt16) Percentage;
 
+                            /* Split the line so it can be parsed */
                             values = line.Split('\t');
 
-                            float q0 = float.Parse(values[3]);
-                            float q1 = float.Parse(values[4]);
-                            float q2 = float.Parse(values[5]);
-                            float q3 = float.Parse(values[6]);
 
-                            Gx = float.Parse(values[7]);
-                            Gy = float.Parse(values[8]);
-                            Gz = float.Parse(values[9]);
+                            /* Time / Marker / Missed Samples */
 
-                            ax = float.Parse(values[10]);
-                            ay = float.Parse(values[11]);
-                            az = float.Parse(values[12]);
+                            time = values[16].Split('_');
+                            if (time[0].Length < 4)
+                                FileDateTimeString = time[0].Substring(0, 1) + " " + time[1].ToString().Substring(0, 3) + " " + time[2].ToString() + " " + time[3].ToString();
+                            else
+                                FileDateTimeString = time[0].Substring(0, 2) + " " + time[1].ToString().Substring(0, 3) + " " + time[2].ToString() + " " + time[3].ToString();
+                            FileDateTime = Convert.ToDateTime(FileDateTimeString);
 
 
+                            /* Is this the start of the data ? */
+                            /* Write the START Marker Details */
+                            if (First == true)
+                            {            
+                                StartTime = Convert.ToDateTime(FileDateTimeString);
+                                MarkerWriter.WriteLine("START\t" + FileDateTime.Date.ToString("u").Substring(0, 10) + "\t" + time[3].ToString().Substring(0, 8));
+                                First = false;
+                            }
+                            
 
-                            float sq_q1 = 2 * q1 * q1;
-                            float sq_q2 = 2 * q2 * q2;
-                            float sq_q3 = 2 * q3 * q3;
-                            float q1_q2 = 2 * q1 * q2;
-                            float q3_q0 = 2 * q3 * q0;
-                            float q1_q3 = 2 * q1 * q3;
-                            float q2_q0 = 2 * q2 * q0;
-                            float q2_q3 = 2 * q2 * q3;
-                            float q1_q0 = 2 * q1 * q0;
+                            /* Is this a Marker (Button Press) ? */
+                            if ((Double.Parse(values[2])) > 0)
+                            {
+                                MarkerWriter.WriteLine("MARKER\t" + time[3].ToString().Substring(0, 8));
+                            }
+
+                            
+                           
+                           
+
+
+                            double q0 = double.Parse(values[3]);
+                            double q1 = double.Parse(values[4]);
+                            double q2 = double.Parse(values[5]);
+                            double q3 = double.Parse(values[6]);
+
+                            Gx = double.Parse(values[7]);
+                            Gy = double.Parse(values[8]);
+                            Gz = double.Parse(values[9]);
+
+                            ax = double.Parse(values[10]);
+                            ay = double.Parse(values[11]);
+                            az = double.Parse(values[12]);
+
+                            double sq_q1 = 2 * q1 * q1;
+                            double sq_q2 = 2 * q2 * q2;
+                            double sq_q3 = 2 * q3 * q3;
+                            double q1_q2 = 2 * q1 * q2;
+                            double q3_q0 = 2 * q3 * q0;
+                            double q1_q3 = 2 * q1 * q3;
+                            double q2_q0 = 2 * q2 * q0;
+                            double q2_q3 = 2 * q2 * q3;
+                            double q1_q0 = 2 * q1 * q0;
 
                             R[0,0] = 1 - sq_q2 - sq_q3;
                             R[0,1] = q1_q2 - q3_q0;
@@ -172,7 +220,6 @@ namespace MarkerParser
                             gx =  R[2,0];
                             gy =  R[2,1];
                             gz =  R[2,2];
-                            //gz = (q0*q0) - (q1*q1) - (q2*q2) + (q3*q3);
 
                             /* Removing gravity from Smoothed Signal */
                             /* Data Port facing inside */
@@ -181,74 +228,46 @@ namespace MarkerParser
                             RawData[2][Total_Data] = -(RawData[2][Total_Data] - gz); */
 
                             /* Data Port Facing Outside */
-                            ax = -(ax -  gx);
-                            ay = -(ay -  gy);
-                            az = -(az -  gz);
-
-
+                            lx = -(ax -  gx);
+                            ly = -(ay -  gy);
+                            lz = -(az -  gz);
 
                             /* Move data around for correct axes orientation in Shimmer Vs the iPhone*/
                             // If data port pointing away from hand. Swap X and Y
-                            gx = ax;
-                            ax = ay;
-                            ay = gx;
+                            gx = lx;
+                            lx = ly;
+                            ly = gx;
+
+                            DataWriter.Write((float)lx);
+                            DataWriter.Write((float)ly);
+                            DataWriter.Write((float)lz);
+                            DataWriter.Write((float)Gx);
+                            DataWriter.Write((float)Gy);
+                            DataWriter.Write((float)Gz);
 
 
-
-                            //DataWriter.WriteLine(ax + "\t" + ay + "\t" + az + "\t" + Gx + "\t" + Gy + "\t" + Gz);
-                            DataWriter.Write(ax);
-                            DataWriter.Write(ay);
-                            DataWriter.Write(az);
-                            DataWriter.Write(Gx);
-                            DataWriter.Write(Gy);
-                            DataWriter.Write(Gz);
-
-                            //ay = ay;
-
-                            /* Is this the start of the data ? */
-                            /* Write the START Marker Details */
-                            if (First == true)
-                            {
-                                time = values[16].Split('_');
-                                if (time[0].Length < 4)
-                                    SomeDate = time[0].Substring(0, 1) + " " + time[1].ToString().Substring(0,3) + " " + time[2].ToString();
-                                else
-                                    SomeDate = time[0].Substring(0, 2) + " " + time[1].ToString().Substring(0,3) + " " + time[2].ToString();
-                                SomeDateTime = Convert.ToDateTime(SomeDate);
-                                MarkerWriter.WriteLine("START\t" + SomeDateTime.Date.ToString("u").Substring(0, 10) + "\t" + time[3].ToString().Substring(0, 8));
-
-                                First = false;
-                            }
-
-                            /* Is this a Marker ? */
-                            if ((Double.Parse(values[2])) > 0)
-                            {
-
-                                time = values[16].Split('_');
-                                //Console.WriteLine(time[3].ToString().Substring(0,8));
-                                MarkerWriter.WriteLine("MARKER\t" + time[3].ToString().Substring(0, 8));
-
-                            }
-
-
+                            
                         }
 
 
                         /* Write the END Marker details */
                         time = values[16].Split('_');
                         if (time[0].Length < 4)
-                            SomeDate = time[0].Substring(0, 1) + " " + time[1].ToString().Substring(0,3) + " " + time[2].ToString();
+                            FileDateTimeString = time[0].Substring(0, 1) + " " + time[1].ToString().Substring(0,3) + " " + time[2].ToString()+ " " + time[3].ToString();
                         else
-                            SomeDate = time[0].Substring(0, 2) + " " + time[1].ToString().Substring(0,3) + " " + time[2].ToString();
-                        SomeDateTime = Convert.ToDateTime(SomeDate);
-                        MarkerWriter.WriteLine("END\t" + SomeDateTime.Date.ToString("u").Substring(0, 10) + "\t" + time[3].ToString().Substring(0, 8));
+                            FileDateTimeString = time[0].Substring(0, 2) + " " + time[1].ToString().Substring(0,3) + " " + time[2].ToString() + " " + time[3].ToString();
+                        FileDateTime = Convert.ToDateTime(FileDateTimeString);
+                        EndTime = FileDateTime;
+                        MarkerWriter.WriteLine("END\t" + FileDateTime.Date.ToString("u").Substring(0, 10) + "\t" + time[3].ToString().Substring(0, 8));
 
                         /* Close the Writer streams */
                         MarkerWriter.Close();
                         DataWriter.Close();
 
+                        ExpSamples = (UInt64)((EndTime.Subtract(StartTime)).TotalSeconds * 15);
+
                         label2.Parent.Invoke((MethodInvoker)delegate {
-                            label2.Text = @"Finished";
+                            label2.Text = "Expected: " + ExpSamples.ToString() + " Written: ";
                             label2.ForeColor = Color.Green;
                             label2.Refresh();
                             button2.Enabled = true;
@@ -270,7 +289,7 @@ namespace MarkerParser
 
                     catch (Exception ex)
                     {
-                        //MessageBox.Show(ex.Message, "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        
                         label2.Parent.Invoke((MethodInvoker)delegate {
                             button2.Enabled = true;
                             label2.Text = ex.Message;
@@ -296,6 +315,7 @@ namespace MarkerParser
         private void button2_Click(object sender, EventArgs e)
         {
             InputFileName = TBInputFile.Text;
+            ExpSamples = 0;
 
             if (TBOutputFile.Text.Equals("", StringComparison.Ordinal))
             {
@@ -363,6 +383,15 @@ namespace MarkerParser
                 MarkerFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-markers.txt";
                 InterviewFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-interview.txt";
                 TBMarkerFile.Text = MarkerFileName;
+
+                label2.Parent.Invoke((MethodInvoker)delegate
+                {
+                    label2.Text = @"Ready";
+                    label2.ForeColor = Color.Green;
+                    label2.Refresh();
+                });
+
+                ProgressBar.Value = 0;
 
             }
         }
