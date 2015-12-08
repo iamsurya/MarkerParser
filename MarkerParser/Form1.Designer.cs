@@ -43,6 +43,7 @@
             this.label6 = new System.Windows.Forms.Label();
             this.TBTime = new System.Windows.Forms.TextBox();
             this.btnGenTime = new System.Windows.Forms.Button();
+            this.btnOpenIFile = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
@@ -149,6 +150,7 @@
             this.ProgressBar.Name = "ProgressBar";
             this.ProgressBar.Size = new System.Drawing.Size(271, 23);
             this.ProgressBar.TabIndex = 11;
+            this.ProgressBar.Click += new System.EventHandler(this.ProgressBar_Click);
             // 
             // label6
             // 
@@ -176,11 +178,23 @@
             this.btnGenTime.UseVisualStyleBackColor = true;
             this.btnGenTime.Click += new System.EventHandler(this.button4_Click);
             // 
+            // btnOpenIFile
+            // 
+            this.btnOpenIFile.Enabled = false;
+            this.btnOpenIFile.Location = new System.Drawing.Point(58, 381);
+            this.btnOpenIFile.Name = "btnOpenIFile";
+            this.btnOpenIFile.Size = new System.Drawing.Size(110, 23);
+            this.btnOpenIFile.TabIndex = 15;
+            this.btnOpenIFile.Text = "Open Interview File";
+            this.btnOpenIFile.UseVisualStyleBackColor = true;
+            this.btnOpenIFile.Click += new System.EventHandler(this.button4_Click_1);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(507, 401);
+            this.ClientSize = new System.Drawing.Size(507, 425);
+            this.Controls.Add(this.btnOpenIFile);
             this.Controls.Add(this.btnGenTime);
             this.Controls.Add(this.TBTime);
             this.Controls.Add(this.label6);
@@ -198,6 +212,7 @@
             this.Controls.Add(this.button1);
             this.Name = "Form1";
             this.Text = "Shimmer Data Parser";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -220,6 +235,7 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox TBTime;
         private System.Windows.Forms.Button btnGenTime;
+        private System.Windows.Forms.Button btnOpenIFile;
     }
 }
 
