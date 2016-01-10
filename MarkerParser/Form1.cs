@@ -13,9 +13,25 @@ using System.Threading;
 
 namespace MarkerParser
 {
-    public partial class Form1 : Form
+    public partial class FrmMainForm : Form
     {
-        String InputFileName, OutputFileName, MarkerFileName, InterviewFileName;
+        /* Arrays of Controls */
+        CheckBox[] MealCheckBox;
+        ComboBox[] StartComboBox;
+        ComboBox[] EndComboBox;
+        Label[] MealMinutes;
+        TextBox[] Descriptions;
+        TextBox[] Activities;
+        ComboBox[] Locations;
+        CheckBox[] Seconds;
+        CheckBox[] Company;
+        CheckBox[] CEating;
+        TextBox[] MealNames;
+
+        object FormObject;
+
+        String InputFileName, OutputFileName, MarkerFileName, InterviewFileName, StartTimeString, EndTimeString;
+        List<string> Markers = new List<string>();
 
         ManualResetEvent runThread = new ManualResetEvent(false);
         Thread t;
@@ -28,14 +44,10 @@ namespace MarkerParser
         UInt64 LinesWritten = 0;
         UInt64 ReadAndDiscarded = 0;
 
+
         double TicksPerSample = (TimeSpan.TicksPerSecond / 15.00f);
 
         double ax = 0, ay = 0, az = 0, Gx = 0, Gy = 0, Gz = 0, gx = 0, gy = 0, gz = 0, lx = 0, ly = 0, lz = 0;
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
 
         double[,] R = new double[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0} };
 
@@ -72,7 +84,7 @@ namespace MarkerParser
                             label2.Text = @"Working";
                             label2.ForeColor = Color.YellowGreen;
                             label2.Refresh();
-                            button2.Enabled = false;
+                            btnReadData.Enabled = false;
                         });
                         
 
@@ -105,7 +117,7 @@ namespace MarkerParser
                         {
                             label2.Parent.Invoke((MethodInvoker)delegate
                             {
-                                button2.Enabled = true;
+                                btnReadData.Enabled = true;
                                 label2.Text = "Data is corrupted. Open CSV file in Excel. Column Q should have date.";
                                 label2.ForeColor = Color.Red;
                             });
@@ -142,6 +154,7 @@ namespace MarkerParser
                         StartTime = FileDateTime;
                         Time = StartTime;
                         MarkerWriter.WriteLine("START\t" + FileDateTime.Date.ToString("u").Substring(0, 10) + "\t" + time[3].ToString().Substring(0, 8));
+                        StartTimeString = "START\t" + FileDateTime.Date.ToString("u").Substring(0, 10) + "\t" + time[3].ToString().Substring(0, 8);
 
                         /* Read actual lines */
                         while (true)
@@ -194,26 +207,19 @@ namespace MarkerParser
 
 
                                 /* Time / Marker / Missed Samples */
-
                                 time = values[16].Split('_');
                                 GetTimeString(time, out FileDateTimeString);
 
                                 CurrentEstimate = FileDateTime;
                                 FileDateTime = Convert.ToDateTime(FileDateTimeString);
-                                //CompTime = FileDateTime.AddMilliseconds(66.66666666666666f);
-
-                                if (false) //(FileDateTime.CompareTo(CurrentEstimate) < 0) This used to quit if a timestamp was before its previous timestamp, but that happened for P2142, so this code is going out of the window.
-                                    break;
                                 
                                 /* Is this a Marker (Button Press), if so, write the time to the marker file */
                                 if ((Double.Parse(values[2])) > 0)
                                 {
                                     MarkerWriter.WriteLine("MARKER\t" + time[3].ToString().Substring(0, 8));
+                                    Markers.Add(time[3].ToString().Substring(0, 8));
                                 }
 
-
-
-                                
                                 /* Calculate the raw acceleration from Quaternion data */
                                 CalculateLinear(values, out lx, out ly, out lz);
                             }
@@ -233,9 +239,7 @@ namespace MarkerParser
                                 DataWriter.Write((float)Gy);
                                 DataWriter.Write((float)Gz);
                                 LinesWritten++;
-                                if (LinesWritten == 736390)
-                                    LinesWritten = LinesWritten;
-                            
+                                
                         }
 
 
@@ -245,8 +249,7 @@ namespace MarkerParser
                         FileDateTime = Convert.ToDateTime(FileDateTimeString);
                         EndTime = FileDateTime;
                         MarkerWriter.WriteLine("END\t" + FileDateTime.Date.ToString("u").Substring(0, 10) + "\t" + time[3].ToString().Substring(0, 8)+"\n\n");
-                        MarkerWriter.WriteLine("Meal Detail\n");
-                        MarkerWriter.WriteLine("Inadvertant Markers");
+                        EndTimeString = "END\t" + FileDateTime.Date.ToString("u").Substring(0, 10) + "\t" + time[3].ToString().Substring(0, 8) + "\n\n";
                         
                         /* Close the Writer streams */
                         MarkerWriter.Close();
@@ -255,23 +258,32 @@ namespace MarkerParser
                         ExpSamples = (UInt64)((EndTime.Subtract(StartTime)).TotalSeconds * 15);
 
                         label2.Parent.Invoke((MethodInvoker)delegate {
-                            label2.Text = "Finished";//  "Expected: " + ExpSamples.ToString() + " Written: " + LinesWritten.ToString() + " E - W: " + ((long)(ExpSamples - LinesWritten)).ToString() + "\nFileEndTime: " + FileDateTime.ToLongTimeString() +"\nCalcEndTime" + Time.ToLongTimeString()+ "\nSamples Added " + ((long)(LinesWritten-CurrentLine)).ToString() + " Discarded " + ReadAndDiscarded.ToString();
+                            label2.Text = "Finished reading data. Please interview\nparticipant and write events.";//  "Expected: " + ExpSamples.ToString() + " Written: " + LinesWritten.ToString() + " E - W: " + ((long)(ExpSamples - LinesWritten)).ToString() + "\nFileEndTime: " + FileDateTime.ToLongTimeString() +"\nCalcEndTime" + Time.ToLongTimeString()+ "\nSamples Added " + ((long)(LinesWritten-CurrentLine)).ToString() + " Discarded " + ReadAndDiscarded.ToString();
                             label2.ForeColor = Color.Green;
                             label2.Refresh();
-                            button2.Enabled = true;
-                        });
-
-                        ProgressBar.Parent.Invoke((MethodInvoker)delegate {
+                            btnReadData.Enabled = true;
                             ProgressBar.ForeColor = Color.Green;
                             ProgressBar.Value = 100;
                             btnOpenIFile.Enabled = true;
+                            FrmMainForm.ActiveForm.Size = new System.Drawing.Size(1391, 464);
                         });
 
                         MarkerWriter.Close();
                         DataWriter.Close();
                         reader.Close();
-
-                        System.IO.File.Copy(MarkerFileName, InterviewFileName, true);
+                        
+                        StartTime1.Parent.Invoke((MethodInvoker)delegate
+                        {
+                        /* Populate Combo boxes */
+                        for(int i = 0; i < 10; i++ )
+                        {
+                            foreach (String S in Markers)
+                            {
+                                StartComboBox[i].Items.Add(S);
+                                EndComboBox[i].Items.Add(S);
+                            }
+                        }
+                        });
 
                         EndThread = true;
                     }
@@ -280,7 +292,7 @@ namespace MarkerParser
                     {
                         
                         label2.Parent.Invoke((MethodInvoker)delegate {
-                            button2.Enabled = true;
+                            btnReadData.Enabled = true;
                             label2.Text = ex.Message;
                             label2.ForeColor = Color.Red;
                         });
@@ -294,12 +306,51 @@ namespace MarkerParser
         }
 
 
-        public Form1()
+        public FrmMainForm()
         {
             InitializeComponent();
+            InitItems();
+        }
+
+        private void InitItems()
+        {
             Int32 unixTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
             TBTime.Text = unixTimestamp.ToString();
+            
+            MealCheckBox = new CheckBox[] { checkBox1, checkBox2, checkBox3, checkBox4, checkBox5, checkBox6, checkBox7, checkBox8, checkBox9, checkBox10 };
+            StartComboBox = new ComboBox[] { StartTime1, StartTime2, StartTime3, StartTime4, StartTime5, StartTime6, StartTime7, StartTime8, StartTime9, StartTime10 };
+            EndComboBox = new ComboBox[] { EndTime1, EndTime2, EndTime3, EndTime4, EndTime5, EndTime6,  EndTime7, EndTime8, EndTime9, EndTime10 };
+            MealMinutes = new Label[] { Length1, Length2, Length3, Length4, Length5, Length6, Length7, Length8, Length9, Length10 };
+            Descriptions = new TextBox[] {Desc1, Desc2, Desc3, Desc4, Desc5,  Desc6, Desc7,  Desc8, Desc9, Desc10};
+            Activities = new TextBox[] {Activity1, Activity2, Activity3, Activity4, Activity5, Activity6, Activity7, Activity8, Activity9, Activity10};
+            Locations = new ComboBox[] {Location1, Location2, Location3, Location4, Location5, Location6, Location7, Location8, Location9, Location10};
+            Seconds = new CheckBox[] {Seconds1, Seconds2, Seconds3, Seconds4, Seconds5, Seconds6, Seconds7, Seconds8, Seconds9, Seconds10};
+            Company = new CheckBox[] {Company1, Company2, Company3, Company4, Company5, Company6, Company7, Company8, Company9, Company10};
+            CEating  = new CheckBox[] {CEating1, CEating2, CEating3, CEating4, CEating5, CEating6, CEating7, CEating8, CEating9, CEating10};
+            MealNames = new TextBox[] { MealName1, MealName2, MealName3, MealName4, MealName5, MealName6, MealName7, MealName8, MealName9, MealName10 };
+            for (int i = 0; i < 10; i++)
+            {
+                MealCheckBox[i].Checked = false;
+                StartComboBox[i].Items.Clear();
+                StartComboBox[i].SelectedIndex = -1;
+                EndComboBox[i].Items.Clear();
+                EndComboBox[i].SelectedIndex = -1;
+                MealMinutes[i].Text = "";
+                Descriptions[i].Text = "";
+                Activities[i].Text = "";
+                Locations[i].Items.Clear();
+                Locations[i].SelectedIndex = -1;
+                Locations[i].Items.Add("Home");
+                Locations[i].Items.Add("Restaurant");
+                Locations[i].Items.Add("Office");
+                Locations[i].Items.Add("Other");
+                Seconds[i].Checked = false;
+                Company[i].Checked = false;
+                CEating[i].Checked = false;
+            }
+
         }
+
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -310,7 +361,7 @@ namespace MarkerParser
             {
                 label2.Parent.Invoke((MethodInvoker)delegate
                 {
-                    button2.Enabled = true;
+                    btnReadData.Enabled = true;
                     label2.Text = "Please pick an output File";
                     label2.ForeColor = Color.Red;
                 });
@@ -348,6 +399,18 @@ namespace MarkerParser
                 MarkerFileName = "";
                 btnOpenIFile.Enabled = false;
 
+                OutputFileName = OutputFileName + ".txt";
+                TBOutputFile.Text = OutputFileName;
+                MarkerFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-markers.txt";
+                InterviewFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-events.txt";
+                TBMarkerFile.Text = MarkerFileName;
+
+                label2.Parent.Invoke((MethodInvoker)delegate
+                {
+                    label2.Text = @"Ready";
+                    label2.ForeColor = Color.Green;
+                    label2.Refresh();
+                });
             }
 
 
@@ -355,7 +418,7 @@ namespace MarkerParser
         }
 
         private void button3_Click(object sender, EventArgs e)
-        {
+        {/*
             SaveFileDialog SaveFileDialog1 = new SaveFileDialog();
 
             SaveFileDialog1.Filter = "Shimmer Data Files (.txt)|*.txt|All Files (*.*)|*.*";
@@ -371,7 +434,7 @@ namespace MarkerParser
                 OutputFileName = SaveFileDialog1.FileName;
                 TBOutputFile.Text = OutputFileName;
                 MarkerFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-markers.txt";
-                InterviewFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-interview.txt";
+                InterviewFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-events.txt";
                 TBMarkerFile.Text = MarkerFileName;
 
                 label2.Parent.Invoke((MethodInvoker)delegate
@@ -384,6 +447,9 @@ namespace MarkerParser
                 ProgressBar.Value = 0;
 
             }
+            */
+            
+
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -464,10 +530,296 @@ namespace MarkerParser
             System.Diagnostics.Process.Start(InterviewFileName);
         }
 
-        private void ProgressBar_Click(object sender, EventArgs e)
+        private void EndTime1_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (StartTime1.SelectedIndex > -1)
+            {
+                try
+                {
+                    Length1.Text = ((Convert.ToDateTime(EndTime1.SelectedItem.ToString()) - Convert.ToDateTime(StartTime1.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+                }
+                catch
+                {
 
+                }
+            }
         }
+
+        private void StartTime1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length1.Text = ((Convert.ToDateTime(EndTime1.SelectedItem.ToString()) - Convert.ToDateTime(StartTime1.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void EndTime2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length2.Text = ((Convert.ToDateTime(EndTime2.SelectedItem.ToString()) - Convert.ToDateTime(StartTime2.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void StartTime2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length2.Text = ((Convert.ToDateTime(EndTime2.SelectedItem.ToString()) - Convert.ToDateTime(StartTime2.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void StartTime3_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length3.Text = ((Convert.ToDateTime(EndTime3.SelectedItem.ToString()) - Convert.ToDateTime(StartTime3.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void StartTime4_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length4.Text = ((Convert.ToDateTime(EndTime4.SelectedItem.ToString()) - Convert.ToDateTime(StartTime4.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void StartTime5_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length5.Text = ((Convert.ToDateTime(EndTime5.SelectedItem.ToString()) - Convert.ToDateTime(StartTime5.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void StartTime6_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length6.Text = ((Convert.ToDateTime(EndTime6.SelectedItem.ToString()) - Convert.ToDateTime(StartTime6.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void StartTime7_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length7.Text = ((Convert.ToDateTime(EndTime7.SelectedItem.ToString()) - Convert.ToDateTime(StartTime7.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void StartTime8_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length8.Text = ((Convert.ToDateTime(EndTime8.SelectedItem.ToString()) - Convert.ToDateTime(StartTime8.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void StartTime9_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length9.Text = ((Convert.ToDateTime(EndTime9.SelectedItem.ToString()) - Convert.ToDateTime(StartTime9.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void StartTime10_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length10.Text = ((Convert.ToDateTime(EndTime10.SelectedItem.ToString()) - Convert.ToDateTime(StartTime10.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void EndTime3_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length3.Text = ((Convert.ToDateTime(EndTime3.SelectedItem.ToString()) - Convert.ToDateTime(StartTime3.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void EndTime4_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length4.Text = ((Convert.ToDateTime(EndTime4.SelectedItem.ToString()) - Convert.ToDateTime(StartTime4.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void EndTime5_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length5.Text = ((Convert.ToDateTime(EndTime5.SelectedItem.ToString()) - Convert.ToDateTime(StartTime5.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void EndTime6_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length6.Text = ((Convert.ToDateTime(EndTime6.SelectedItem.ToString()) - Convert.ToDateTime(StartTime6.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void EndTime7_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length7.Text = ((Convert.ToDateTime(EndTime7.SelectedItem.ToString()) - Convert.ToDateTime(StartTime7.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void EndTime8_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length8.Text = ((Convert.ToDateTime(EndTime8.SelectedItem.ToString()) - Convert.ToDateTime(StartTime8.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void EndTime9_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length9.Text = ((Convert.ToDateTime(EndTime9.SelectedItem.ToString()) - Convert.ToDateTime(StartTime9.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void EndTime10_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Length10.Text = ((Convert.ToDateTime(EndTime10.SelectedItem.ToString()) - Convert.ToDateTime(StartTime10.SelectedItem.ToString())).TotalMinutes.ToString()).Split('.')[0];
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void btnWriteEvents_Click(object sender, EventArgs e)
+        {
+            /* First create the events file */
+            InterviewFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-events.txt";
+            MarkerWriter = new StreamWriter(File.OpenWrite(InterviewFileName));
+            MarkerWriter.WriteLine(StartTimeString);
+
+            /* <Name>	<Start Time>	<End Time>	<Location>	<Seconds>	<With Company?> <Was Company Eating?>	Description of Food, Activity / textual description */
+            /* Do not use commas in Descriptions */
+            /* Locations - > 0 - Home, 1 - Restaurant, 2 - Office, 3 - Other */
+            for (int i = 0; i<10; i++)
+            {
+                if(MealCheckBox[i].Checked == true)
+                {
+                    MarkerWriter.WriteLine(MealNames[i].Text + "\t" + StartComboBox[i].Text + "\t" + EndComboBox[i].Text + "\t" + (Locations[i].SelectedIndex).ToString() + "\t" + Convert.ToInt16(Seconds[i].Checked).ToString() + "\t" + Convert.ToInt16(Company[i].Checked).ToString() + "\t" + Convert.ToInt16(CEating[i].Checked).ToString() + "\t" + Descriptions[i].Text + " | " + Activities[i].Text); 
+                }
+            }
+            
+            MarkerWriter.WriteLine(EndTimeString +"\n");
+            MarkerWriter.WriteLine("Age\t" + tbAge.Text);
+            MarkerWriter.WriteLine("Weight\t" + tbWeight.Text);
+            MarkerWriter.WriteLine("Gender\t" + cbGender.SelectedIndex.ToString());
+            MarkerWriter.WriteLine("Height\t" + tbHtFt.Text + "\t" + tbHtIn.Text);
+            MarkerWriter.WriteLine("Ethnicity\t" + cbEthnicity.SelectedIndex.ToString());
+            MarkerWriter.Close();
+
+            lbWriteStatus.Text = "Events file updated. Check in ShimmerView.";
+            lbWriteStatus.ForeColor = Color.Green;
+        }
+
+        private void btnReset_Click(object sender, EventArgs e)
+        {
+            InitItems();
+            this.Invoke((MethodInvoker)delegate
+                {
+                FrmMainForm.ActiveForm.Width = 381;
+                }
+            );
+            lbWriteStatus.Text = "";
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            this.Size = new System.Drawing.Size(381, 464);
+            FormObject = this;
+        }
+
 
     }
 }
