@@ -30,15 +30,12 @@
         {
             this.btnSelectFile = new System.Windows.Forms.Button();
             this.btnReadData = new System.Windows.Forms.Button();
-            this.btnOPFile = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
+            this.lbStatus = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.TBInputFile = new System.Windows.Forms.TextBox();
             this.TBOutputFile = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
-            this.TBMarkerFile = new System.Windows.Forms.TextBox();
-            this.label5 = new System.Windows.Forms.Label();
             this.ProgressBar = new System.Windows.Forms.ProgressBar();
             this.label6 = new System.Windows.Forms.Label();
             this.TBTime = new System.Windows.Forms.TextBox();
@@ -167,23 +164,16 @@
             this.MealName8 = new System.Windows.Forms.TextBox();
             this.MealName9 = new System.Windows.Forms.TextBox();
             this.MealName10 = new System.Windows.Forms.TextBox();
-            this.label18 = new System.Windows.Forms.Label();
-            this.label19 = new System.Windows.Forms.Label();
-            this.label20 = new System.Windows.Forms.Label();
-            this.label21 = new System.Windows.Forms.Label();
-            this.tbAge = new System.Windows.Forms.TextBox();
-            this.tbWeight = new System.Windows.Forms.TextBox();
-            this.tbHtFt = new System.Windows.Forms.TextBox();
-            this.cbGender = new System.Windows.Forms.ComboBox();
-            this.label22 = new System.Windows.Forms.Label();
-            this.label23 = new System.Windows.Forms.Label();
-            this.tbHtIn = new System.Windows.Forms.TextBox();
-            this.label24 = new System.Windows.Forms.Label();
-            this.cbEthnicity = new System.Windows.Forms.ComboBox();
-            this.lbWriteStatus = new System.Windows.Forms.Label();
             this.label25 = new System.Windows.Forms.Label();
             this.label26 = new System.Windows.Forms.Label();
             this.label27 = new System.Windows.Forms.Label();
+            this.button1 = new System.Windows.Forms.Button();
+            this.lbSTText = new System.Windows.Forms.Label();
+            this.lbStartTime = new System.Windows.Forms.Label();
+            this.lbETText = new System.Windows.Forms.Label();
+            this.lbEndTime = new System.Windows.Forms.Label();
+            this.lbStartTimeWarning = new System.Windows.Forms.Label();
+            this.lbEndTimeWarning = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btnSelectFile
@@ -206,16 +196,6 @@
             this.btnReadData.UseVisualStyleBackColor = true;
             this.btnReadData.Click += new System.EventHandler(this.button2_Click);
             // 
-            // btnOPFile
-            // 
-            this.btnOPFile.Location = new System.Drawing.Point(249, 141);
-            this.btnOPFile.Name = "btnOPFile";
-            this.btnOPFile.Size = new System.Drawing.Size(108, 23);
-            this.btnOPFile.TabIndex = 2;
-            this.btnOPFile.Text = "Select Output File";
-            this.btnOPFile.UseVisualStyleBackColor = true;
-            this.btnOPFile.Click += new System.EventHandler(this.button3_Click);
-            // 
             // label1
             // 
             this.label1.AutoSize = true;
@@ -225,15 +205,15 @@
             this.label1.TabIndex = 3;
             this.label1.Text = "Status : ";
             // 
-            // label2
+            // lbStatus
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(83, 206);
-            this.label2.MaximumSize = new System.Drawing.Size(230, 0);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(22, 13);
-            this.label2.TabIndex = 4;
-            this.label2.Text = "     ";
+            this.lbStatus.AutoSize = true;
+            this.lbStatus.Location = new System.Drawing.Point(80, 206);
+            this.lbStatus.MaximumSize = new System.Drawing.Size(230, 0);
+            this.lbStatus.Name = "lbStatus";
+            this.lbStatus.Size = new System.Drawing.Size(22, 13);
+            this.lbStatus.TabIndex = 4;
+            this.lbStatus.Text = "     ";
             // 
             // label3
             // 
@@ -253,40 +233,24 @@
             // 
             // TBOutputFile
             // 
-            this.TBOutputFile.Location = new System.Drawing.Point(84, 142);
+            this.TBOutputFile.Location = new System.Drawing.Point(84, 159);
             this.TBOutputFile.Name = "TBOutputFile";
-            this.TBOutputFile.Size = new System.Drawing.Size(119, 20);
+            this.TBOutputFile.ReadOnly = true;
+            this.TBOutputFile.Size = new System.Drawing.Size(273, 20);
             this.TBOutputFile.TabIndex = 8;
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(11, 146);
+            this.label4.Location = new System.Drawing.Point(11, 163);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(67, 13);
             this.label4.TabIndex = 7;
             this.label4.Text = "Output File : ";
             // 
-            // TBMarkerFile
-            // 
-            this.TBMarkerFile.Location = new System.Drawing.Point(84, 168);
-            this.TBMarkerFile.Name = "TBMarkerFile";
-            this.TBMarkerFile.ReadOnly = true;
-            this.TBMarkerFile.Size = new System.Drawing.Size(119, 20);
-            this.TBMarkerFile.TabIndex = 10;
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(11, 172);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(68, 13);
-            this.label5.TabIndex = 9;
-            this.label5.Text = "Marker File : ";
-            // 
             // ProgressBar
             // 
-            this.ProgressBar.Location = new System.Drawing.Point(14, 241);
+            this.ProgressBar.Location = new System.Drawing.Point(14, 294);
             this.ProgressBar.Name = "ProgressBar";
             this.ProgressBar.Size = new System.Drawing.Size(343, 23);
             this.ProgressBar.TabIndex = 11;
@@ -320,7 +284,7 @@
             // btnOpenIFile
             // 
             this.btnOpenIFile.Enabled = false;
-            this.btnOpenIFile.Location = new System.Drawing.Point(1244, 396);
+            this.btnOpenIFile.Location = new System.Drawing.Point(1084, 396);
             this.btnOpenIFile.Name = "btnOpenIFile";
             this.btnOpenIFile.Size = new System.Drawing.Size(118, 23);
             this.btnOpenIFile.TabIndex = 15;
@@ -1320,7 +1284,7 @@
             // 
             // btnWriteEvents
             // 
-            this.btnWriteEvents.Location = new System.Drawing.Point(1011, 396);
+            this.btnWriteEvents.Location = new System.Drawing.Point(851, 396);
             this.btnWriteEvents.Name = "btnWriteEvents";
             this.btnWriteEvents.Size = new System.Drawing.Size(110, 23);
             this.btnWriteEvents.TabIndex = 82;
@@ -1330,7 +1294,7 @@
             // 
             // btnReset
             // 
-            this.btnReset.Location = new System.Drawing.Point(1128, 396);
+            this.btnReset.Location = new System.Drawing.Point(968, 396);
             this.btnReset.Name = "btnReset";
             this.btnReset.Size = new System.Drawing.Size(110, 23);
             this.btnReset.TabIndex = 82;
@@ -1417,136 +1381,10 @@
             this.MealName10.Size = new System.Drawing.Size(100, 20);
             this.MealName10.TabIndex = 83;
             // 
-            // label18
-            // 
-            this.label18.AutoSize = true;
-            this.label18.Location = new System.Drawing.Point(15, 297);
-            this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(60, 13);
-            this.label18.TabIndex = 84;
-            this.label18.Text = "Age (years)";
-            // 
-            // label19
-            // 
-            this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(15, 320);
-            this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(63, 13);
-            this.label19.TabIndex = 84;
-            this.label19.Text = "Weight (lbs)";
-            // 
-            // label20
-            // 
-            this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(15, 343);
-            this.label20.Name = "label20";
-            this.label20.Size = new System.Drawing.Size(42, 13);
-            this.label20.TabIndex = 84;
-            this.label20.Text = "Gender";
-            // 
-            // label21
-            // 
-            this.label21.AutoSize = true;
-            this.label21.Location = new System.Drawing.Point(15, 367);
-            this.label21.Name = "label21";
-            this.label21.Size = new System.Drawing.Size(38, 13);
-            this.label21.TabIndex = 84;
-            this.label21.Text = "Height";
-            // 
-            // tbAge
-            // 
-            this.tbAge.Location = new System.Drawing.Point(86, 294);
-            this.tbAge.Name = "tbAge";
-            this.tbAge.Size = new System.Drawing.Size(100, 20);
-            this.tbAge.TabIndex = 85;
-            // 
-            // tbWeight
-            // 
-            this.tbWeight.Location = new System.Drawing.Point(86, 317);
-            this.tbWeight.Name = "tbWeight";
-            this.tbWeight.Size = new System.Drawing.Size(100, 20);
-            this.tbWeight.TabIndex = 85;
-            // 
-            // tbHtFt
-            // 
-            this.tbHtFt.Location = new System.Drawing.Point(86, 363);
-            this.tbHtFt.Name = "tbHtFt";
-            this.tbHtFt.Size = new System.Drawing.Size(32, 20);
-            this.tbHtFt.TabIndex = 85;
-            // 
-            // cbGender
-            // 
-            this.cbGender.FormattingEnabled = true;
-            this.cbGender.Items.AddRange(new object[] {
-            "Male",
-            "Female"});
-            this.cbGender.Location = new System.Drawing.Point(86, 340);
-            this.cbGender.Name = "cbGender";
-            this.cbGender.Size = new System.Drawing.Size(100, 21);
-            this.cbGender.TabIndex = 86;
-            // 
-            // label22
-            // 
-            this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(118, 367);
-            this.label22.Name = "label22";
-            this.label22.Size = new System.Drawing.Size(13, 13);
-            this.label22.TabIndex = 84;
-            this.label22.Text = "ft";
-            // 
-            // label23
-            // 
-            this.label23.AutoSize = true;
-            this.label23.Location = new System.Drawing.Point(163, 367);
-            this.label23.Name = "label23";
-            this.label23.Size = new System.Drawing.Size(27, 13);
-            this.label23.TabIndex = 84;
-            this.label23.Text = "inch";
-            // 
-            // tbHtIn
-            // 
-            this.tbHtIn.Location = new System.Drawing.Point(131, 363);
-            this.tbHtIn.Name = "tbHtIn";
-            this.tbHtIn.Size = new System.Drawing.Size(32, 20);
-            this.tbHtIn.TabIndex = 85;
-            // 
-            // label24
-            // 
-            this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(15, 390);
-            this.label24.Name = "label24";
-            this.label24.Size = new System.Drawing.Size(47, 13);
-            this.label24.TabIndex = 84;
-            this.label24.Text = "Ethnicity";
-            // 
-            // cbEthnicity
-            // 
-            this.cbEthnicity.FormattingEnabled = true;
-            this.cbEthnicity.Items.AddRange(new object[] {
-            "American Indian or Alaska Native",
-            "Asian or Pacific Islander",
-            "African American",
-            "Caucasian",
-            "Hispanic"});
-            this.cbEthnicity.Location = new System.Drawing.Point(86, 386);
-            this.cbEthnicity.Name = "cbEthnicity";
-            this.cbEthnicity.Size = new System.Drawing.Size(100, 21);
-            this.cbEthnicity.TabIndex = 86;
-            // 
-            // lbWriteStatus
-            // 
-            this.lbWriteStatus.AutoSize = true;
-            this.lbWriteStatus.Location = new System.Drawing.Point(405, 403);
-            this.lbWriteStatus.MaximumSize = new System.Drawing.Size(230, 0);
-            this.lbWriteStatus.Name = "lbWriteStatus";
-            this.lbWriteStatus.Size = new System.Drawing.Size(22, 13);
-            this.lbWriteStatus.TabIndex = 4;
-            this.lbWriteStatus.Text = "     ";
-            // 
             // label25
             // 
             this.label25.AutoSize = true;
-            this.label25.Location = new System.Drawing.Point(18, 446);
+            this.label25.Location = new System.Drawing.Point(12, 92);
             this.label25.Name = "label25";
             this.label25.Size = new System.Drawing.Size(262, 13);
             this.label25.TabIndex = 87;
@@ -1555,7 +1393,7 @@
             // label26
             // 
             this.label26.AutoSize = true;
-            this.label26.Location = new System.Drawing.Point(18, 459);
+            this.label26.Location = new System.Drawing.Point(12, 105);
             this.label26.Name = "label26";
             this.label26.Size = new System.Drawing.Size(168, 13);
             this.label26.TabIndex = 87;
@@ -1564,33 +1402,90 @@
             // label27
             // 
             this.label27.AutoSize = true;
-            this.label27.Location = new System.Drawing.Point(18, 472);
+            this.label27.Location = new System.Drawing.Point(12, 118);
             this.label27.Name = "label27";
             this.label27.Size = new System.Drawing.Size(97, 13);
             this.label27.TabIndex = 87;
             this.label27.Text = "3. Click Read Data";
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(1209, 396);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 88;
+            this.button1.Text = "Open Folder";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click_1);
+            // 
+            // lbSTText
+            // 
+            this.lbSTText.AutoSize = true;
+            this.lbSTText.Location = new System.Drawing.Point(405, 401);
+            this.lbSTText.Name = "lbSTText";
+            this.lbSTText.Size = new System.Drawing.Size(58, 13);
+            this.lbSTText.TabIndex = 89;
+            this.lbSTText.Text = "Start Time:";
+            this.lbSTText.Click += new System.EventHandler(this.lbSTText_Click);
+            // 
+            // lbStartTime
+            // 
+            this.lbStartTime.AutoSize = true;
+            this.lbStartTime.Location = new System.Drawing.Point(469, 401);
+            this.lbStartTime.Name = "lbStartTime";
+            this.lbStartTime.Size = new System.Drawing.Size(0, 13);
+            this.lbStartTime.TabIndex = 89;
+            // 
+            // lbETText
+            // 
+            this.lbETText.AutoSize = true;
+            this.lbETText.Location = new System.Drawing.Point(619, 401);
+            this.lbETText.Name = "lbETText";
+            this.lbETText.Size = new System.Drawing.Size(49, 13);
+            this.lbETText.TabIndex = 89;
+            this.lbETText.Text = "EndTime";
+            // 
+            // lbEndTime
+            // 
+            this.lbEndTime.AutoSize = true;
+            this.lbEndTime.Location = new System.Drawing.Point(683, 401);
+            this.lbEndTime.Name = "lbEndTime";
+            this.lbEndTime.Size = new System.Drawing.Size(0, 13);
+            this.lbEndTime.TabIndex = 89;
+            // 
+            // lbStartTimeWarning
+            // 
+            this.lbStartTimeWarning.AutoSize = true;
+            this.lbStartTimeWarning.Location = new System.Drawing.Point(80, 240);
+            this.lbStartTimeWarning.MaximumSize = new System.Drawing.Size(230, 0);
+            this.lbStartTimeWarning.Name = "lbStartTimeWarning";
+            this.lbStartTimeWarning.Size = new System.Drawing.Size(22, 13);
+            this.lbStartTimeWarning.TabIndex = 4;
+            this.lbStartTimeWarning.Text = "     ";
+            // 
+            // lbEndTimeWarning
+            // 
+            this.lbEndTimeWarning.AutoSize = true;
+            this.lbEndTimeWarning.Location = new System.Drawing.Point(80, 266);
+            this.lbEndTimeWarning.MaximumSize = new System.Drawing.Size(230, 0);
+            this.lbEndTimeWarning.Name = "lbEndTimeWarning";
+            this.lbEndTimeWarning.Size = new System.Drawing.Size(22, 13);
+            this.lbEndTimeWarning.TabIndex = 4;
+            this.lbEndTimeWarning.Text = "     ";
+            // 
             // FrmMainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1375, 537);
+            this.ClientSize = new System.Drawing.Size(1341, 425);
+            this.Controls.Add(this.lbEndTime);
+            this.Controls.Add(this.lbStartTime);
+            this.Controls.Add(this.lbETText);
+            this.Controls.Add(this.lbSTText);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.label27);
             this.Controls.Add(this.label26);
             this.Controls.Add(this.label25);
-            this.Controls.Add(this.cbEthnicity);
-            this.Controls.Add(this.cbGender);
-            this.Controls.Add(this.tbHtIn);
-            this.Controls.Add(this.tbHtFt);
-            this.Controls.Add(this.tbWeight);
-            this.Controls.Add(this.label23);
-            this.Controls.Add(this.tbAge);
-            this.Controls.Add(this.label22);
-            this.Controls.Add(this.label21);
-            this.Controls.Add(this.label24);
-            this.Controls.Add(this.label19);
-            this.Controls.Add(this.label20);
-            this.Controls.Add(this.label18);
             this.Controls.Add(this.MealName10);
             this.Controls.Add(this.MealName9);
             this.Controls.Add(this.MealName8);
@@ -1719,16 +1614,14 @@
             this.Controls.Add(this.TBTime);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.ProgressBar);
-            this.Controls.Add(this.TBMarkerFile);
-            this.Controls.Add(this.label5);
             this.Controls.Add(this.TBOutputFile);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.TBInputFile);
             this.Controls.Add(this.label3);
-            this.Controls.Add(this.lbWriteStatus);
-            this.Controls.Add(this.label2);
+            this.Controls.Add(this.lbEndTimeWarning);
+            this.Controls.Add(this.lbStartTimeWarning);
+            this.Controls.Add(this.lbStatus);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.btnOPFile);
             this.Controls.Add(this.btnReadData);
             this.Controls.Add(this.btnSelectFile);
             this.Name = "FrmMainForm";
@@ -1743,15 +1636,12 @@
 
         private System.Windows.Forms.Button btnSelectFile;
         private System.Windows.Forms.Button btnReadData;
-        private System.Windows.Forms.Button btnOPFile;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label lbStatus;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox TBInputFile;
         private System.Windows.Forms.TextBox TBOutputFile;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox TBMarkerFile;
-        private System.Windows.Forms.Label label5;
         private System.Windows.Forms.ProgressBar ProgressBar;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox TBTime;
@@ -1880,23 +1770,16 @@
         private System.Windows.Forms.TextBox MealName8;
         private System.Windows.Forms.TextBox MealName9;
         private System.Windows.Forms.TextBox MealName10;
-        private System.Windows.Forms.Label label18;
-        private System.Windows.Forms.Label label19;
-        private System.Windows.Forms.Label label20;
-        private System.Windows.Forms.Label label21;
-        private System.Windows.Forms.TextBox tbAge;
-        private System.Windows.Forms.TextBox tbWeight;
-        private System.Windows.Forms.TextBox tbHtFt;
-        private System.Windows.Forms.ComboBox cbGender;
-        private System.Windows.Forms.Label label22;
-        private System.Windows.Forms.Label label23;
-        private System.Windows.Forms.TextBox tbHtIn;
-        private System.Windows.Forms.Label label24;
-        private System.Windows.Forms.ComboBox cbEthnicity;
-        private System.Windows.Forms.Label lbWriteStatus;
         private System.Windows.Forms.Label label25;
         private System.Windows.Forms.Label label26;
         private System.Windows.Forms.Label label27;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label lbSTText;
+        private System.Windows.Forms.Label lbStartTime;
+        private System.Windows.Forms.Label lbETText;
+        private System.Windows.Forms.Label lbEndTime;
+        private System.Windows.Forms.Label lbStartTimeWarning;
+        private System.Windows.Forms.Label lbEndTimeWarning;
     }
 }
 

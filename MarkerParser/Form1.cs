@@ -31,6 +31,7 @@ namespace MarkerParser
         object FormObject;
 
         String InputFileName, OutputFileName, MarkerFileName, InterviewFileName, StartTimeString, EndTimeString;
+        DateTime StartTime = new DateTime(0), EndTime;
         List<string> Markers = new List<string>();
 
         ManualResetEvent runThread = new ManualResetEvent(false);
@@ -71,19 +72,20 @@ namespace MarkerParser
                     {
                         String FileDateTimeString; // String from the file which contains time and date
                         DateTime FileDateTime; // DateTime generated from the File data
-                        DateTime StartTime = new DateTime(0), EndTime, CurrentEstimate = new DateTime(0);
+                        DateTime CurrentEstimate = new DateTime(0);
                         DateTime Time = StartTime;
                         DateTime CompTime = StartTime, LongCompTime = StartTime;
+                        
                         LinesWritten = 0;
                         Percentage = 0;
                         UPercentage = 0;
                         ReadAndDiscarded = 0;
 
                         /* Modify the button so it can't be pressed again */
-                        label2.Parent.Invoke((MethodInvoker)delegate {
-                            label2.Text = @"Working";
-                            label2.ForeColor = Color.YellowGreen;
-                            label2.Refresh();
+                        lbStatus.Parent.Invoke((MethodInvoker)delegate {
+                            lbStatus.Text = @"Working";
+                            lbStatus.ForeColor = Color.YellowGreen;
+                            lbStatus.Refresh();
                             btnReadData.Enabled = false;
                         });
                         
@@ -115,11 +117,11 @@ namespace MarkerParser
 
                         if (values.Length < 18)
                         {
-                            label2.Parent.Invoke((MethodInvoker)delegate
+                            lbStatus.Parent.Invoke((MethodInvoker)delegate
                             {
                                 btnReadData.Enabled = true;
-                                label2.Text = "Data is corrupted. Open CSV file in Excel. Column Q should have date.";
-                                label2.ForeColor = Color.Red;
+                                lbStatus.Text = "Data is corrupted. Open CSV file in Excel. Column Q should have date.";
+                                lbStatus.ForeColor = Color.Red;
                             });
                             MarkerWriter.Close();
                             DataWriter.Close();
@@ -191,11 +193,11 @@ namespace MarkerParser
                                         ProgressBar.Value = ((UInt16)Percentage <= 100) ? (UInt16)Percentage : 100;
                                     });
 
-                                    label2.Parent.Invoke((MethodInvoker)delegate
+                                    lbStatus.Parent.Invoke((MethodInvoker)delegate
                                     {
-                                        label2.Text = @"Working " + Percentage.ToString() + "%";
-                                        label2.ForeColor = Color.YellowGreen;
-                                        label2.Refresh();
+                                        lbStatus.Text = @"Working " + Percentage.ToString() + "%";
+                                        lbStatus.ForeColor = Color.YellowGreen;
+                                        lbStatus.Refresh();
                                     });
 
                                 }
@@ -256,16 +258,20 @@ namespace MarkerParser
                         DataWriter.Close();
 
                         ExpSamples = (UInt64)((EndTime.Subtract(StartTime)).TotalSeconds * 15);
+                        DateTimeFormatInfo fmt = (new CultureInfo("hr-HR")).DateTimeFormat;
 
-                        label2.Parent.Invoke((MethodInvoker)delegate {
-                            label2.Text = "Finished reading data. Please interview\nparticipant and write events.";//  "Expected: " + ExpSamples.ToString() + " Written: " + LinesWritten.ToString() + " E - W: " + ((long)(ExpSamples - LinesWritten)).ToString() + "\nFileEndTime: " + FileDateTime.ToLongTimeString() +"\nCalcEndTime" + Time.ToLongTimeString()+ "\nSamples Added " + ((long)(LinesWritten-CurrentLine)).ToString() + " Discarded " + ReadAndDiscarded.ToString();
-                            label2.ForeColor = Color.Green;
-                            label2.Refresh();
-                            btnReadData.Enabled = true;
+                        lbStatus.Parent.Invoke((MethodInvoker)delegate {
+                            lbStatus.Text = "Finished reading data. Please interview\nparticipant and write events.";//  "Expected: " + ExpSamples.ToString() + " Written: " + LinesWritten.ToString() + " E - W: " + ((long)(ExpSamples - LinesWritten)).ToString() + "\nFileEndTime: " + FileDateTime.ToLongTimeString() +"\nCalcEndTime" + Time.ToLongTimeString()+ "\nSamples Added " + ((long)(LinesWritten-CurrentLine)).ToString() + " Discarded " + ReadAndDiscarded.ToString();
+                            lbStatus.ForeColor = Color.Green;
+                            lbStatus.Refresh();
+                            btnReadData.Enabled = false;
                             ProgressBar.ForeColor = Color.Green;
                             ProgressBar.Value = 100;
                             btnOpenIFile.Enabled = true;
+                            lbStartTime.Text = StartTime.ToString("T", fmt);
+                            lbEndTime.Text = EndTime.ToString("T", fmt);
                             FrmMainForm.ActiveForm.Size = new System.Drawing.Size(1391, 464);
+                            
                         });
 
                         MarkerWriter.Close();
@@ -291,10 +297,10 @@ namespace MarkerParser
                     catch (Exception ex)
                     {
                         
-                        label2.Parent.Invoke((MethodInvoker)delegate {
-                            btnReadData.Enabled = true;
-                            label2.Text = ex.Message;
-                            label2.ForeColor = Color.Red;
+                        lbStatus.Parent.Invoke((MethodInvoker)delegate {
+                            btnReadData.Enabled = false;
+                            lbStatus.Text = "An error has occured. Close this program and try again.";
+                            lbStatus.ForeColor = Color.Red;
                         });
                         MarkerWriter.Close();
                         DataWriter.Close();
@@ -359,20 +365,26 @@ namespace MarkerParser
 
             if (TBOutputFile.Text.Equals("", StringComparison.Ordinal))
             {
-                label2.Parent.Invoke((MethodInvoker)delegate
+                lbStatus.Parent.Invoke((MethodInvoker)delegate
                 {
                     btnReadData.Enabled = true;
-                    label2.Text = "Please pick an output File";
-                    label2.ForeColor = Color.Red;
+                    lbStatus.Text = "Please pick an output File";
+                    lbStatus.ForeColor = Color.Red;
                 });
             }
             else
             {
+                lbStartTimeWarning.Text = "";
+                lbStartTimeWarning.ForeColor = Color.Green;
+                lbEndTimeWarning.Text = "";
+                lbEndTimeWarning.ForeColor = Color.Green;
                 EndThread = false;
                 t = new Thread(WorkerThread);
                 t.Start();
                 runThread.Set();
             }
+
+            btnReadData.Enabled = false;
         }
         
         private void button1_Click(object sender, EventArgs e)
@@ -390,65 +402,47 @@ namespace MarkerParser
              // Process input if the user clicked OK.
             if (userClickedOK == DialogResult.OK)
             {
+                btnReadData.Enabled = true;
                 InputFileName = openFileDialog1.FileName;
                 TBInputFile.Text = InputFileName;
                 OutputFileName = new DirectoryInfo(InputFileName).Parent.Parent.Name;
-                TBOutputFile.Text = "";
-                TBMarkerFile.Text = "";
-                InterviewFileName = "";
-                MarkerFileName = "";
-                btnOpenIFile.Enabled = false;
-
-                OutputFileName = OutputFileName + ".txt";
+                
+                OutputFileName = new DirectoryInfo(InputFileName).Parent.Parent.FullName +"\\"+ OutputFileName + ".txt";
                 TBOutputFile.Text = OutputFileName;
                 MarkerFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-markers.txt";
                 InterviewFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-events.txt";
-                TBMarkerFile.Text = MarkerFileName;
 
-                label2.Parent.Invoke((MethodInvoker)delegate
+                lbStatus.Text = @"Ready";
+                lbStatus.ForeColor = Color.Green;
+                lbStatus.Refresh();
+
+                if(File.Exists(MarkerFileName)) //Ask if the previous files need to be deleted or you want to abort the operation.
                 {
-                    label2.Text = @"Ready";
-                    label2.ForeColor = Color.Green;
-                    label2.Refresh();
-                });
+                    DialogResult dialogResult = MessageBox.Show("Shimmerview Files for this Participant already exist. Do you want to delete the previous files and create new ones? Make sure you backup any previous interview information.", "Duplicate files", MessageBoxButtons.YesNo);
+                    if (dialogResult == DialogResult.Yes)
+                    {
+                        string[] filePaths = Directory.GetFiles(new DirectoryInfo(InputFileName).Parent.Parent.FullName);
+                        foreach (string filePath in filePaths)
+                        File.Delete(filePath);
+                        lbStatus.Text = @"Previous Files Deleted";
+                        lbStatus.ForeColor = Color.Red;
+                        lbStatus.Refresh();
+                    }
+                    else if (dialogResult == DialogResult.No)
+                    {
+                        lbStatus.Text = @"Check Files in folder and restart MarkerParser";
+                        lbStatus.ForeColor = Color.Red;
+                        lbStatus.Refresh();
+                        btnReadData.Enabled = false;
+                    }
+                }
+
+                
+
+                
             }
 
 
-
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {/*
-            SaveFileDialog SaveFileDialog1 = new SaveFileDialog();
-
-            SaveFileDialog1.Filter = "Shimmer Data Files (.txt)|*.txt|All Files (*.*)|*.*";
-            SaveFileDialog1.FilterIndex = 1;
-            SaveFileDialog1.FileName = OutputFileName + ".txt";
-            SaveFileDialog1.InitialDirectory = new DirectoryInfo(InputFileName).Parent.Parent.FullName;
-
-            DialogResult userClickedOK = SaveFileDialog1.ShowDialog();
-
-            // Process input if the user clicked OK.
-            if (userClickedOK == DialogResult.OK)
-            {
-                OutputFileName = SaveFileDialog1.FileName;
-                TBOutputFile.Text = OutputFileName;
-                MarkerFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-markers.txt";
-                InterviewFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-events.txt";
-                TBMarkerFile.Text = MarkerFileName;
-
-                label2.Parent.Invoke((MethodInvoker)delegate
-                {
-                    label2.Text = @"Ready";
-                    label2.ForeColor = Color.Green;
-                    label2.Refresh();
-                });
-
-                ProgressBar.Value = 0;
-
-            }
-            */
-            
 
         }
 
@@ -527,7 +521,7 @@ namespace MarkerParser
 
         private void button4_Click_1(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start(InterviewFileName);
+            System.Diagnostics.Process.Start("C:\\Shimmerview.exe",OutputFileName);
         }
 
         private void EndTime1_SelectedIndexChanged(object sender, EventArgs e)
@@ -775,6 +769,8 @@ namespace MarkerParser
 
         private void btnWriteEvents_Click(object sender, EventArgs e)
         {
+            String FirstMealStartTime = "" , LastMealEndTime = "";
+            bool first = true;
             /* First create the events file */
             InterviewFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-events.txt";
             MarkerWriter = new StreamWriter(File.OpenWrite(InterviewFileName));
@@ -783,24 +779,47 @@ namespace MarkerParser
             /* <Name>	<Start Time>	<End Time>	<Location>	<Seconds>	<With Company?> <Was Company Eating?>	Description of Food, Activity / textual description */
             /* Do not use commas in Descriptions */
             /* Locations - > 0 - Home, 1 - Restaurant, 2 - Office, 3 - Other */
+
             for (int i = 0; i<10; i++)
             {
                 if(MealCheckBox[i].Checked == true)
                 {
-                    MarkerWriter.WriteLine(MealNames[i].Text + "\t" + StartComboBox[i].Text + "\t" + EndComboBox[i].Text + "\t" + (Locations[i].SelectedIndex).ToString() + "\t" + Convert.ToInt16(Seconds[i].Checked).ToString() + "\t" + Convert.ToInt16(Company[i].Checked).ToString() + "\t" + Convert.ToInt16(CEating[i].Checked).ToString() + "\t" + Descriptions[i].Text + " | " + Activities[i].Text); 
+                    if (first)
+                    {
+                        FirstMealStartTime = StartComboBox[i].Text;
+                        first = false;
+                    }
+
+                    MarkerWriter.WriteLine(MealNames[i].Text + "\t" + StartComboBox[i].Text + "\t" + EndComboBox[i].Text + "\t" + Locations[i].Text + "\t" + (Seconds[i].Checked?"Seconds":"NoSeconds") + "\t" + (Company[i].Checked?"InCompany":"Alone") + "\t" + (CEating[i].Checked?"CompanyEating":"CompanyNotEating") + "\t" + Descriptions[i].Text + " | " + Activities[i].Text);
+                    LastMealEndTime = EndComboBox[i].Text;
                 }
             }
             
             MarkerWriter.WriteLine(EndTimeString +"\n");
-            MarkerWriter.WriteLine("Age\t" + tbAge.Text);
-            MarkerWriter.WriteLine("Weight\t" + tbWeight.Text);
-            MarkerWriter.WriteLine("Gender\t" + cbGender.SelectedIndex.ToString());
-            MarkerWriter.WriteLine("Height\t" + tbHtFt.Text + "\t" + tbHtIn.Text);
-            MarkerWriter.WriteLine("Ethnicity\t" + cbEthnicity.SelectedIndex.ToString());
+            
             MarkerWriter.Close();
 
-            lbWriteStatus.Text = "Events file updated. Check in ShimmerView.";
-            lbWriteStatus.ForeColor = Color.Green;
+            try
+            {
+                /* Calculate time before first meal and after last meal */
+                StartTime = DateTime.Today + StartTime.TimeOfDay;
+                EndTime = DateTime.Today + EndTime.TimeOfDay;
+                TimeSpan BeforeFirstMeal = Convert.ToDateTime(FirstMealStartTime) - StartTime;
+                TimeSpan AfterLastMeal = EndTime - Convert.ToDateTime(LastMealEndTime);
+                lbStatus.Text = "Events file updated. Check in ShimmerView.";
+                lbStartTimeWarning.Text = "Time before first meal: " + Math.Floor(BeforeFirstMeal.TotalMinutes).ToString() + " minutes.";
+                lbEndTimeWarning.Text = "Time after last meal: " + Math.Floor(AfterLastMeal.TotalMinutes).ToString() + " minutes.";
+                if (AfterLastMeal.TotalMinutes < 8) lbEndTimeWarning.ForeColor = Color.Red;
+                if (BeforeFirstMeal.TotalMinutes < 8) lbStartTimeWarning.ForeColor = Color.Red;
+                lbStatus.ForeColor = Color.Green;
+            }
+            catch {
+
+                lbStatus.Text = "An error has occured. Please check if Event times are selected correctly.";
+                lbStatus.ForeColor = Color.Red;
+            }
+
+            
         }
 
         private void btnReset_Click(object sender, EventArgs e)
@@ -811,13 +830,23 @@ namespace MarkerParser
                 FrmMainForm.ActiveForm.Width = 381;
                 }
             );
-            lbWriteStatus.Text = "";
+            lbStatus.Text = "";
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             this.Size = new System.Drawing.Size(381, 464);
             FormObject = this;
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start(new DirectoryInfo(InputFileName).Parent.Parent.FullName);
+        }
+
+        private void lbSTText_Click(object sender, EventArgs e)
+        {
+
         }
 
 
