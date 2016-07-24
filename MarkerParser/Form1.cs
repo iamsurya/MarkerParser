@@ -45,10 +45,14 @@ namespace MarkerParser
         UInt64 LinesWritten = 0;
         UInt64 ReadAndDiscarded = 0;
 
+        double sampleFreq = 15.0f;
+        double beta = 0.1f;
+        double q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;	// quaternion of sensor frame relative to auxiliary frame
+
 
         double TicksPerSample = (TimeSpan.TicksPerSecond / 15.00f);
 
-        double ax = 0, ay = 0, az = 0, Gx = 0, Gy = 0, Gz = 0, gx = 0, gy = 0, gz = 0, lx = 0, ly = 0, lz = 0;
+        double ax = 0, ay = 0, az = 0, Gx = 0, Gy = 0, Gz = 0, gx = 0, gy = 0, gz = 0, lx = 0, ly = 0, lz = 0, mx = 0, my = 0, mz = 0;
 
         double[,] R = new double[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0} };
 
@@ -58,6 +62,7 @@ namespace MarkerParser
         StreamWriter MarkerWriter;
         BinaryWriter DataWriter;
         StreamReader reader;
+
 
         private void WorkerThread()
         {
@@ -75,7 +80,7 @@ namespace MarkerParser
                         DateTime CurrentEstimate = new DateTime(0);
                         DateTime Time = StartTime;
                         DateTime CompTime = StartTime, LongCompTime = StartTime;
-                        
+
                         LinesWritten = 0;
                         Percentage = 0;
                         UPercentage = 0;
@@ -90,7 +95,7 @@ namespace MarkerParser
                         });
                         
 
-
+                        
                         MarkerWriter = new StreamWriter(File.OpenWrite(MarkerFileName));
                         DataWriter = new BinaryWriter(File.OpenWrite(OutputFileName));
 
@@ -454,11 +459,7 @@ namespace MarkerParser
 
         private void CalculateLinear(String[] values, out double lx, out double ly, out double lz)
         {
-            double q0 = double.Parse(values[3]);
-            double q1 = double.Parse(values[4]);
-            double q2 = double.Parse(values[5]);
-            double q3 = double.Parse(values[6]);
-
+            
             Gx = double.Parse(values[7]);
             Gy = double.Parse(values[8]);
             Gz = double.Parse(values[9]);
@@ -467,25 +468,36 @@ namespace MarkerParser
             ay = double.Parse(values[11]);
             az = double.Parse(values[12]);
 
-            double sq_q1 = 2 * q1 * q1;
-            double sq_q2 = 2 * q2 * q2;
-            double sq_q3 = 2 * q3 * q3;
-            double q1_q2 = 2 * q1 * q2;
-            double q3_q0 = 2 * q3 * q0;
-            double q1_q3 = 2 * q1 * q3;
-            double q2_q0 = 2 * q2 * q0;
-            double q2_q3 = 2 * q2 * q3;
-            double q1_q0 = 2 * q1 * q0;
+            mx = double.Parse(values[13]);
+            my = double.Parse(values[14]);
+            mz = double.Parse(values[15]);
 
-            R[0, 0] = 1 - sq_q2 - sq_q3;
-            R[0, 1] = q1_q2 - q3_q0;
-            R[0, 2] = q1_q3 + q2_q0;
-            R[1, 0] = q1_q2 + q3_q0;
-            R[1, 1] = 1 - sq_q1 - sq_q3;
-            R[1, 2] = q2_q3 - q1_q0;
-            R[2, 0] = q1_q3 - q2_q0;
-            R[2, 1] = q2_q3 + q1_q0;
-            R[2, 2] = 1 - sq_q1 - sq_q2;
+            //MadgwickAHRSupdate(Gx, Gy, Gz, ax, ay, az, mx, my, mz);
+
+            double _q0 = double.Parse(values[3]);
+            double _q1 = double.Parse(values[4]);
+            double _q2 = double.Parse(values[5]);
+            double _q3 = double.Parse(values[6]);
+
+            double sq__q1 = 2 * _q1 * _q1;
+            double sq__q2 = 2 * _q2 * _q2;
+            double sq__q3 = 2 * _q3 * _q3;
+            double _q1__q2 = 2 * _q1 * _q2;
+            double _q3__q0 = 2 * _q3 * _q0;
+            double _q1__q3 = 2 * _q1 * _q3;
+            double _q2__q0 = 2 * _q2 * _q0;
+            double _q2__q3 = 2 * _q2 * _q3;
+            double _q1__q0 = 2 * _q1 * _q0;
+
+            R[0, 0] = 1 - sq__q2 - sq__q3;
+            R[0, 1] = _q1__q2 - _q3__q0;
+            R[0, 2] = _q1__q3 + _q2__q0;
+            R[1, 0] = _q1__q2 + _q3__q0;
+            R[1, 1] = 1 - sq__q1 - sq__q3;
+            R[1, 2] = _q2__q3 - _q1__q0;
+            R[2, 0] = _q1__q3 - _q2__q0;
+            R[2, 1] = _q2__q3 + _q1__q0;
+            R[2, 2] = 1 - sq__q1 - sq__q2;
 
             /* Seperating gravity */
             gx = R[2, 0];
@@ -848,6 +860,193 @@ namespace MarkerParser
         {
 
         }
+
+        void MadgwickAHRSupdate(double gx, double gy, double gz, double ax, double ay, double az, double mx, double my, double mz)
+        {
+            double recipNorm;
+            double s0, s1, s2, s3;
+            double qDot1, qDot2, qDot3, qDot4;
+            double hx, hy, _8bx, _8bz;
+            double _2q0mx, _2q0my, _2q0mz, _2q1mx, _2bx, _2bz, _4bx, _4bz, _2q0, _2q1, _2q2, _2q3, _2q0q2, _2q2q3, q0q0, q0q1, q0q2, q0q3, q1q1, q1q2, q1q3, q2q2, q2q3, q3q3;
+
+            /* Data in Shimmer is degrees / sec. Convert to Rad/sec for the algorithm */
+            gx = gx * Math.PI / 180;
+            gy = gy * Math.PI / 180;
+            gz = gz * Math.PI / 180;
+
+            // Use IMU algorithm if magnetometer measurement invalid (avoids NaN in magnetometer normalisation)
+            if ((mx == 0.0f) && (my == 0.0f) && (mz == 0.0f))
+            {
+                MadgwickAHRSupdateIMU(gx, gy, gz, ax, ay, az);
+                return;
+            }
+
+            // Rate of change of quaternion from gyroscope
+            qDot1 = 0.5f * (-q1 * gx - q2 * gy - q3 * gz);
+            qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
+            qDot3 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
+            qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
+
+            // Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
+            if (!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f)))
+            {
+
+                // Normalise accelerometer measurement
+                recipNorm = 1 / Math.Sqrt(ax * ax + ay * ay + az * az);
+                ax *= recipNorm;
+                ay *= recipNorm;
+                az *= recipNorm;
+
+                // Normalise magnetometer measurement
+                recipNorm = 1 / Math.Sqrt(mx * mx + my * my + mz * mz);
+                mx *= recipNorm;
+                my *= recipNorm;
+                mz *= recipNorm;
+
+                // Auxiliary variables to avoid repeated arithmetic
+                _2q0mx = 2.0f * q0 * mx;
+                _2q0my = 2.0f * q0 * my;
+                _2q0mz = 2.0f * q0 * mz;
+                _2q1mx = 2.0f * q1 * mx;
+                _2q0 = 2.0f * q0;
+                _2q1 = 2.0f * q1;
+                _2q2 = 2.0f * q2;
+                _2q3 = 2.0f * q3;
+                _2q0q2 = 2.0f * q0 * q2;
+                _2q2q3 = 2.0f * q2 * q3;
+                q0q0 = q0 * q0;
+                q0q1 = q0 * q1;
+                q0q2 = q0 * q2;
+                q0q3 = q0 * q3;
+                q1q1 = q1 * q1;
+                q1q2 = q1 * q2;
+                q1q3 = q1 * q3;
+                q2q2 = q2 * q2;
+                q2q3 = q2 * q3;
+                q3q3 = q3 * q3;
+
+                // Reference direction of Earth's magnetic field
+                hx = mx * q0q0 - _2q0my * q3 + _2q0mz * q2 + mx * q1q1 + _2q1 * my * q2 + _2q1 * mz * q3 - mx * q2q2 - mx * q3q3;
+                hy = _2q0mx * q3 + my * q0q0 - _2q0mz * q1 + _2q1mx * q2 - my * q1q1 + my * q2q2 + _2q2 * mz * q3 - my * q3q3;
+                _2bx = Math.Sqrt(hx * hx + hy * hy);
+                _2bz = -_2q0mx * q2 + _2q0my * q1 + mz * q0q0 + _2q1mx * q3 - mz * q1q1 + _2q2 * my * q3 - mz * q2q2 + mz * q3q3;
+                _4bx = 2.0f * _2bx;
+                _4bz = 2.0f * _2bz;
+                _8bx = 2.0f * _4bx;
+                _8bz = 2.0f * _4bz;
+                // Gradient decent algorithm corrective step
+                /*
+                s0 = -_2q2 * (2.0f * (q1q3 - q0q2) - ax) + _2q1 * (2.0f * (q0q1 + q2q3) - ay) + -_4bz * q2 * (_4bx * (0.5 - q2q2 - q3q3) + _4bz * (q1q3 - q0q2) - mx) + (-_4bx * q3 + _4bz * q1) * (_4bx * (q1q2 - q0q3) + _4bz * (q0q1 + q2q3) - my) + _4bx * q2 * (_4bx * (q0q2 + q1q3) + _4bz * (0.5 - q1q1 - q2q2) - mz);
+                s1 = _2q3 * (2.0f * (q1q3 - q0q2) - ax) + _2q0 * (2.0f * (q0q1 + q2q3) - ay) + -4.0f * q1 * (2.0f * (0.5 - q1q1 - q2q2) - az) + _4bz * q3 * (_4bx * (0.5 - q2q2 - q3q3) + _4bz * (q1q3 - q0q2) - mx) + (_4bx * q2 + _4bz * q0) * (_4bx * (q1q2 - q0q3) + _4bz * (q0q1 + q2q3) - my) + (_4bx * q3 - _8bz * q1) * (_4bx * (q0q2 + q1q3) + _4bz * (0.5 - q1q1 - q2q2) - mz);
+                s2 = -_2q0 * (2.0f * (q1q3 - q0q2) - ax) + _2q3 * (2.0f * (q0q1 + q2q3) - ay) + (-4.0f * q2) * (2.0f * (0.5 - q1q1 - q2q2) - az) + (-_8bx * q2 - _4bz * q0) * (_4bx * (0.5 - q2q2 - q3q3) + _4bz * (q1q3 - q0q2) - mx) + (_4bx * q1 + _4bz * q3) * (_4bx * (q1q2 - q0q3) + _4bz * (q0q1 + q2q3) - my) + (_4bx * q0 - _8bz * q2) * (_4bx * (q0q2 + q1q3) + _4bz * (0.5 - q1q1 - q2q2) - mz);
+                s3 = _2q1 * (2.0f * (q1q3 - q0q2) - ax) + _2q2 * (2.0f * (q0q1 + q2q3) - ay) + (-_8bx * q3 + _4bz * q1) * (_4bx * (0.5 - q2q2 - q3q3) + _4bz * (q1q3 - q0q2) - mx) + (-_4bx * q0 + _4bz * q2) * (_4bx * (q1q2 - q0q3) + _4bz * (q0q1 + q2q3) - my) + (_4bx * q1) * (_4bx * (q0q2 + q1q3) + _4bz * (0.5 - q1q1 - q2q2) - mz);
+                */
+                s0 = -_2q2 * (2.0f * q1q3 - _2q0q2 - ax) + _2q1 * (2.0f * q0q1 + _2q2q3 - ay) - _2bz * q2 * (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + (-_2bx * q3 + _2bz * q1) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + _2bx * q2 * (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+                s1 = _2q3 * (2.0f * q1q3 - _2q0q2 - ax) + _2q0 * (2.0f * q0q1 + _2q2q3 - ay) - 4.0f * q1 * (1 - 2.0f * q1q1 - 2.0f * q2q2 - az) + _2bz * q3 * (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + (_2bx * q2 + _2bz * q0) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + (_2bx * q3 - _4bz * q1) * (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+                s2 = -_2q0 * (2.0f * q1q3 - _2q0q2 - ax) + _2q3 * (2.0f * q0q1 + _2q2q3 - ay) - 4.0f * q2 * (1 - 2.0f * q1q1 - 2.0f * q2q2 - az) + (-_4bx * q2 - _2bz * q0) * (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + (_2bx * q1 + _2bz * q3) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + (_2bx * q0 - _4bz * q2) * (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+                s3 = _2q1 * (2.0f * q1q3 - _2q0q2 - ax) + _2q2 * (2.0f * q0q1 + _2q2q3 - ay) + (-_4bx * q3 + _2bz * q1) * (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + (-_2bx * q0 + _2bz * q2) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + _2bx * q1 * (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+                
+
+                recipNorm = 1 / Math.Sqrt(s0 * s0 + s1 * s1 + s2 * s2 + s3 * s3); // normalise step magnitude
+                s0 *= recipNorm;
+                s1 *= recipNorm;
+                s2 *= recipNorm;
+                s3 *= recipNorm;
+
+                // Apply feedback step
+                qDot1 -= beta * s0;
+                qDot2 -= beta * s1;
+                qDot3 -= beta * s2;
+                qDot4 -= beta * s3;
+            }
+
+            // Integrate rate of change of quaternion to yield quaternion
+            q0 += qDot1 * (1.0f / sampleFreq);
+            q1 += qDot2 * (1.0f / sampleFreq);
+            q2 += qDot3 * (1.0f / sampleFreq);
+            q3 += qDot4 * (1.0f / sampleFreq);
+
+            // Normalise quaternion
+            recipNorm = 1 / Math.Sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
+            q0 *= recipNorm;
+            q1 *= recipNorm;
+            q2 *= recipNorm;
+            q3 *= recipNorm;
+        }
+
+        //---------------------------------------------------------------------------------------------------
+        // IMU algorithm update
+
+        void MadgwickAHRSupdateIMU(double gx, double gy, double gz, double ax, double ay, double az)
+        {
+            double recipNorm;
+            double s0, s1, s2, s3;
+            double qDot1, qDot2, qDot3, qDot4;
+            double _2q0, _2q1, _2q2, _2q3, _4q0, _4q1, _4q2, _8q1, _8q2, q0q0, q1q1, q2q2, q3q3;
+
+            // Rate of change of quaternion from gyroscope
+            qDot1 = 0.5f * (-q1 * gx - q2 * gy - q3 * gz);
+            qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
+            qDot3 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
+            qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
+
+            // Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
+            if (!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f)))
+            {
+
+                // Normalise accelerometer measurement
+                recipNorm = 1 / Math.Sqrt(ax * ax + ay * ay + az * az);
+                ax *= recipNorm;
+                ay *= recipNorm;
+                az *= recipNorm;
+
+                // Auxiliary variables to avoid repeated arithmetic
+                _2q0 = 2.0f * q0;
+                _2q1 = 2.0f * q1;
+                _2q2 = 2.0f * q2;
+                _2q3 = 2.0f * q3;
+                _4q0 = 4.0f * q0;
+                _4q1 = 4.0f * q1;
+                _4q2 = 4.0f * q2;
+                _8q1 = 8.0f * q1;
+                _8q2 = 8.0f * q2;
+                q0q0 = q0 * q0;
+                q1q1 = q1 * q1;
+                q2q2 = q2 * q2;
+                q3q3 = q3 * q3;
+
+                // Gradient decent algorithm corrective step
+                s0 = _4q0 * q2q2 + _2q2 * ax + _4q0 * q1q1 - _2q1 * ay;
+                s1 = _4q1 * q3q3 - _2q3 * ax + 4.0f * q0q0 * q1 - _2q0 * ay - _4q1 + _8q1 * q1q1 + _8q1 * q2q2 + _4q1 * az;
+                s2 = 4.0f * q0q0 * q2 + _2q0 * ax + _4q2 * q3q3 - _2q3 * ay - _4q2 + _8q2 * q1q1 + _8q2 * q2q2 + _4q2 * az;
+                s3 = 4.0f * q1q1 * q3 - _2q1 * ax + 4.0f * q2q2 * q3 - _2q2 * ay;
+                recipNorm = 1 / Math.Sqrt(s0 * s0 + s1 * s1 + s2 * s2 + s3 * s3); // normalise step magnitude
+                s0 *= recipNorm;
+                s1 *= recipNorm;
+                s2 *= recipNorm;
+                s3 *= recipNorm;
+
+                // Apply feedback step
+                qDot1 -= beta * s0;
+                qDot2 -= beta * s1;
+                qDot3 -= beta * s2;
+                qDot4 -= beta * s3;
+            }
+
+            // Integrate rate of change of quaternion to yield quaternion
+            q0 += qDot1 * (1.0f / sampleFreq);
+            q1 += qDot2 * (1.0f / sampleFreq);
+            q2 += qDot3 * (1.0f / sampleFreq);
+            q3 += qDot4 * (1.0f / sampleFreq);
+
+            // Normalise quaternion
+            recipNorm = 1 / Math.Sqrt((q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3));
+            q0 *= recipNorm;
+            q1 *= recipNorm;
+            q2 *= recipNorm;
+            q3 *= recipNorm;
+        }
+
 
 
     }
