@@ -64,10 +64,9 @@ namespace MarkerParser
         int COL_TIMESTRING = 16;    /* Default Consensys 0.2.0 = 16 */
         int COL_AX = 10;            /* Default Consensys 0.2.0 = 10 */
         int COL_GX = 7;             /* Default Consensys 0.2.0 = 7 */
-        int COL_MX = 12;            /* Default Consensys 0.2.0 = 12 */
+        int COL_MX = 13;            /* Default Consensys 0.2.0 = 13 */
         int COL_Q0 = 3;             /* Default Consensys 0.2.0 = 3 */
         int COL_BUTTON = 2;         /* Default Consensys 0.2.0 = 2 */
-
 
         StreamWriter MarkerWriter;
         BinaryWriter DataWriter;
