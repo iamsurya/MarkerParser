@@ -60,6 +60,15 @@ namespace MarkerParser
         bool EndThread = true;
         bool ReadAndDiscard = false;
 
+        /* Column Numbers */
+        int COL_TIMESTRING = 16;    /* Default Consensys 0.2.0 = 16 */
+        int COL_AX = 10;            /* Default Consensys 0.2.0 = 10 */
+        int COL_GX = 7;             /* Default Consensys 0.2.0 = 7 */
+        int COL_MX = 12;            /* Default Consensys 0.2.0 = 12 */
+        int COL_Q0 = 3;             /* Default Consensys 0.2.0 = 3 */
+        int COL_BUTTON = 2;         /* Default Consensys 0.2.0 = 2 */
+
+
         StreamWriter MarkerWriter;
         BinaryWriter DataWriter;
         StreamReader reader;
@@ -154,7 +163,7 @@ namespace MarkerParser
                         /* Write the START Marker Details */
                         /* Time / Marker / Missed Samples */
 
-                        var time = values[16].Split('_');
+                        var time = values[COL_TIMESTRING].Split('_');
 
                         GetTimeString(time, out FileDateTimeString);
                         FileDateTime = Convert.ToDateTime(FileDateTimeString);
@@ -212,14 +221,14 @@ namespace MarkerParser
 
 
                                 /* Time / Marker / Missed Samples */
-                                time = values[16].Split('_');
+                                time = values[COL_TIMESTRING].Split('_');
                                 GetTimeString(time, out FileDateTimeString);
 
                                 CurrentEstimate = FileDateTime;
                                 FileDateTime = Convert.ToDateTime(FileDateTimeString);
                                 
                                 /* Is this a Marker (Button Press), if so, write the time to the marker file */
-                                if ((Double.Parse(values[2])) > 0)
+                                if ((Double.Parse(values[COL_BUTTON])) > 0)
                                 {
                                     MarkerWriter.WriteLine("MARKER\t" + time[3].ToString().Substring(0, 8));
                                     Markers.Add(time[3].ToString().Substring(0, 8));
@@ -249,7 +258,7 @@ namespace MarkerParser
 
 
                         /* Write the END Marker details */
-                        time = values[16].Split('_');
+                        time = values[COL_TIMESTRING].Split('_');
                         GetTimeString(time, out FileDateTimeString);
                         FileDateTime = Convert.ToDateTime(FileDateTimeString);
                         EndTime = FileDateTime;
@@ -458,17 +467,17 @@ namespace MarkerParser
         private void CalculateLinear(String[] values, out double lx, out double ly, out double lz)
         {
             
-            Gx = double.Parse(values[7]);
-            Gy = double.Parse(values[8]);
-            Gz = double.Parse(values[9]);
+            Gx = double.Parse(values[COL_GX]);
+            Gy = double.Parse(values[COL_GX + 1]);
+            Gz = double.Parse(values[COL_GX + 2]);
 
-            ax = double.Parse(values[10]);
-            ay = double.Parse(values[11]);
-            az = double.Parse(values[12]);
+            ax = double.Parse(values[COL_AX]);
+            ay = double.Parse(values[COL_AX + 1]);
+            az = double.Parse(values[COL_AX + 2]);
 
-            mx = double.Parse(values[13]);
-            my = double.Parse(values[14]);
-            mz = double.Parse(values[15]);
+            mx = double.Parse(values[COL_MX]);
+            my = double.Parse(values[COL_MX + 1]);
+            mz = double.Parse(values[COL_MX + 2]);
 
             /* Even if you enable this, it changes q0,q1,...q3 not _q0,_q1,...q3 */
             /*
@@ -478,10 +487,10 @@ namespace MarkerParser
             */
             //MadgwickAHRSupdate(Gx, Gy, Gz, ax, ay, az, mx, my, mz);
 
-            double _q0 = double.Parse(values[3]);
-            double _q1 = double.Parse(values[4]);
-            double _q2 = double.Parse(values[5]);
-            double _q3 = double.Parse(values[6]);
+            double _q0 = double.Parse(values[COL_Q0]);
+            double _q1 = double.Parse(values[COL_Q0 + 1]);
+            double _q2 = double.Parse(values[COL_Q0 + 2]);
+            double _q3 = double.Parse(values[COL_Q0 + 3]);
 
             double sq__q1 = 2 * _q1 * _q1;
             double sq__q2 = 2 * _q2 * _q2;
