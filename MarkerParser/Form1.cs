@@ -54,6 +54,7 @@ namespace MarkerParser
 
         double ax = 0, ay = 0, az = 0, Gx = 0, Gy = 0, Gz = 0, gx = 0, gy = 0, gz = 0, lx = 0, ly = 0, lz = 0, mx = 0, my = 0, mz = 0;
 
+        
         double[,] R = new double[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0} };
 
         bool EndThread = true;
@@ -172,9 +173,6 @@ namespace MarkerParser
                                 Time = Time.AddTicks((long)TicksPerSample);
                             else ReadAndDiscard = true; /* Otherwise we read from the file and discard the data instead of writing it */
                             
-                            //CompTime = FileDateTime.AddTicks((long)TicksPerSample);
-
-
                             CompTime = FileDateTime;
                             LongCompTime = FileDateTime.AddSeconds(5);
                             if((FileDateTime-Time).TotalSeconds > 5)
@@ -237,8 +235,8 @@ namespace MarkerParser
                                 ReadAndDiscarded++;
                                 continue;
                             }
-                                
-                                
+
+
                                 DataWriter.Write((float)lx);
                                 DataWriter.Write((float)ly);
                                 DataWriter.Write((float)lz);
@@ -472,6 +470,12 @@ namespace MarkerParser
             my = double.Parse(values[14]);
             mz = double.Parse(values[15]);
 
+            /* Even if you enable this, it changes q0,q1,...q3 not _q0,_q1,...q3 */
+            /*
+            This part of the code was added to consider usning AHRS algorithms instead of
+            the Quaternion supplied by Invensenses DMP. It is unused. A program called AHRSTEST was
+            created instead.
+            */
             //MadgwickAHRSupdate(Gx, Gy, Gz, ax, ay, az, mx, my, mz);
 
             double _q0 = double.Parse(values[3]);
@@ -500,17 +504,12 @@ namespace MarkerParser
             R[2, 2] = 1 - sq__q1 - sq__q2;
 
             /* Seperating gravity */
+            /* This is [gx gy gz] = [0 0 1] * R, where R is the Rotation Matrix above */
             gx = R[2, 0];
             gy = R[2, 1];
             gz = R[2, 2];
 
-            /* Removing gravity from Smoothed Signal */
-            /* Data Port facing inside */
-            /* RawData[0][Total_Data] = -(RawData[0][Total_Data] - gx);
-            RawData[1][Total_Data] = -(RawData[1][Total_Data] - gy);
-            RawData[2][Total_Data] = -(RawData[2][Total_Data] - gz); */
-
-            /* Data Port Facing Outside */
+            /* Adjust signs for Data Port Facing Outside (towards the fingers) */
             lx = -(ax - gx);
             ly = -(ay - gy);
             lz = -(az - gz);
@@ -787,11 +786,7 @@ namespace MarkerParser
             InterviewFileName = OutputFileName.Substring(0, OutputFileName.Length - 4) + "-events.txt";
             MarkerWriter = new StreamWriter(File.OpenWrite(InterviewFileName));
             MarkerWriter.WriteLine(StartTimeString);
-
-            /* <Name>	<Start Time>	<End Time>	<Location>	<Seconds>	<With Company?> <Was Company Eating?>	Description of Food, Activity / textual description */
-            /* Do not use commas in Descriptions */
-            /* Locations - > 0 - Home, 1 - Restaurant, 2 - Office, 3 - Other */
-
+            
             for (int i = 0; i<10; i++)
             {
                 if(MealCheckBox[i].Checked == true)
