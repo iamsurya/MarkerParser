@@ -67,6 +67,8 @@ namespace MarkerParser
         int COL_MX = 13;            /* Default Consensys 0.2.0 = 13 */
         int COL_Q0 = 3;             /* Default Consensys 0.2.0 = 3 */
         int COL_BUTTON = 2;         /* Default Consensys 0.2.0 = 2 */
+        int COL_LENGTH = 18;        /* Default Consensys 0.2.0 = 18 (There is an extra "" at the end) */
+
 
         StreamWriter MarkerWriter;
         BinaryWriter DataWriter;
@@ -129,7 +131,7 @@ namespace MarkerParser
                         line = reader.ReadLine();
                         values = line.Split('\t');
 
-                        if (values.Length < 18)
+                        if (values.Length < COL_LENGTH)
                         {
                             lbStatus.Parent.Invoke((MethodInvoker)delegate
                             {
@@ -310,7 +312,7 @@ namespace MarkerParser
                         
                         lbStatus.Parent.Invoke((MethodInvoker)delegate {
                             btnReadData.Enabled = false;
-                            lbStatus.Text = "An error has occured. Close this program and try again.";
+                            lbStatus.Text = "An error has occured. Close this program and try again." + ex.ToString();
                             lbStatus.ForeColor = Color.Red;
                         });
                         MarkerWriter.Close();
