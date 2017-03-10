@@ -61,13 +61,14 @@ namespace MarkerParser
         bool ReadAndDiscard = false;
 
         /* Column Numbers */
-        int COL_TIMESTRING = 16;    /* Default Consensys 0.2.0 = 16 */
-        int COL_AX = 10;            /* Default Consensys 0.2.0 = 10 */
-        int COL_GX = 7;             /* Default Consensys 0.2.0 = 7 */
-        int COL_MX = 13;            /* Default Consensys 0.2.0 = 13 */
-        int COL_Q0 = 3;             /* Default Consensys 0.2.0 = 3 */
-        int COL_BUTTON = 2;         /* Default Consensys 0.2.0 = 2 */
-        int COL_LENGTH = 18;        /* Default Consensys 0.2.0 = 18 (There is an extra "" at the end) */
+        /* Init around line 340 */
+        int COL_TIMESTRING;// = 16;    /* Default Consensys 0.2.0 = 16 */
+        int COL_AX;// = 10;            /* Default Consensys 0.2.0 = 10 */
+        int COL_GX;// = 7;             /* Default Consensys 0.2.0 = 7 */
+        int COL_MX;// = 13;            /* Default Consensys 0.2.0 = 13 */
+        int COL_Q0;// = 3;             /* Default Consensys 0.2.0 = 3 */
+        int COL_BUTTON;// = 2;         /* Default Consensys 0.2.0 = 2 */
+        int COL_LENGTH;// = 18;        /* Default Consensys 0.2.0 = 18 (There is an extra "" at the end) */
 
 
         StreamWriter MarkerWriter;
@@ -227,14 +228,16 @@ namespace MarkerParser
 
                                 CurrentEstimate = FileDateTime;
                                 FileDateTime = Convert.ToDateTime(FileDateTimeString);
-                                
-                                /* Is this a Marker (Button Press), if so, write the time to the marker file */
-                                if ((Double.Parse(values[COL_BUTTON])) > 0)
-                                {
-                                    MarkerWriter.WriteLine("MARKER\t" + time[3].ToString().Substring(0, 8));
-                                    Markers.Add(time[3].ToString().Substring(0, 8));
-                                }
 
+                                /* Is this a Marker (Button Press), if so, write the time to the marker file */
+                                if (COL_BUTTON > 0)
+                                {
+                                    if ((Double.Parse(values[COL_BUTTON])) > 0)
+                                    {
+                                        MarkerWriter.WriteLine("MARKER\t" + time[3].ToString().Substring(0, 8));
+                                        Markers.Add(time[3].ToString().Substring(0, 8));
+                                    }
+                                }
                                 /* Calculate the raw acceleration from Quaternion data */
                                 CalculateLinear(values, out lx, out ly, out lz);
                             }
@@ -329,6 +332,14 @@ namespace MarkerParser
         {
             InitializeComponent();
             InitItems();
+
+            COL_Q0 = 3;// 3;                     /* Default Consensys 0.2.0 = 3 */
+            COL_GX = COL_Q0 + 4;            /* Default Consensys 0.2.0 = 7 */
+            COL_AX = COL_GX + 3;            /* Default Consensys 0.2.0 = 10 */
+            COL_MX = COL_AX + 3;            /* Default Consensys 0.2.0 = 13 */
+            COL_TIMESTRING = COL_MX + 3;    /* Default Consensys 0.2.0 = 16 */
+            COL_BUTTON = 2;         /* Default Consensys 0.2.0 = 2 */
+            COL_LENGTH = 18;        /* Default Consensys 0.2.0 = 18 (There is an extra "" at the end) */
         }
 
         private void InitItems()
